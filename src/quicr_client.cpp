@@ -1,6 +1,7 @@
 #include "quicr_quic_transport.h"
 #include <queue>
 #include <quicr/quicr_client.h>
+#include <quicr/quicr_api.h>
 
 namespace quicr {
 

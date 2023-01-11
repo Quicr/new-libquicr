@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 
+#include "quicr_transport.h"
+
 namespace quicr {
 
 // TODO: Do we need a different structure or the name
@@ -75,17 +77,8 @@ enum class SubscribeJoinMode
  * RelayInfo defines the connection information for relays
 */
 struct RelayInfo {
-
-  enum class RelayProtocol {
-    QUIC = 0,
-    UDP,
-    TLS,
-    TCP
-  };
-
   std::string   hostname;  // Relay IP or FQDN
   uint16_t      port;      // Relay port to connect to
-  RelayProtocol proto;     // Transport protocol to use 
 };
 
 /**
@@ -392,11 +385,6 @@ class QuicRClient
 
 };
 
-
-/*********************************************************************
- * @todo update the below
- */
-
 /*
  * Server/Relay callback methods
  */
@@ -455,13 +443,19 @@ class ServerDelegate
 
 class QuicRServer
 {
-
-  // TODO: Need to have connection/stream level info
-
-  QuicRServer(const uint16_t port, ServerDelegate& delegate) explicit;
-
-  // Transport APIs
-  bool is_transport_ready();
+  /**
+   * @brief Construct a new QuicR Server
+   *
+   * @details A new server thread will be started with an event loop
+   *   running to process received messages.
+   *
+   * @param relay                Relay connection information to bind/accept from
+   * @param serverDelegate       Server delegate (callback) class to use
+   * @param transport            QUIC transport implementation
+   */
+  QuicRServer(const RelayInfo relay,
+              ServerDelegate& serverDelegate,
+              QuicRTransport transport);
 
   /*
    * Send the result of processing the PublishIntent
