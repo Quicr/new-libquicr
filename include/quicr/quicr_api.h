@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 
-#include "quicr_transport.h"
+#include "quicr_api/transport.h"
 
 namespace quicr {
 
@@ -250,26 +250,26 @@ class QuicRClient
 
   /**
    * @brief Construct a new QuicR Client
-   * 
+   *
    * @details A new client thread will be started with an event loop
    *   running to process received messages. Subscriber and publisher
-   *   delegate callbacks will be called on received messages. 
+   *   delegate callbacks will be called on received messages.
    *   The relay will be connected and maintained by the event loop.
-   * 
-   * @param relay                Relay connection information
+   *
+   * @param transport            QuicRTransport class implementation
    * @param subscriber_delegate  Subscriber delegate
    * @param pub_delegate         Publisher delegate
    */
-  QuicRClient(const RelayInfo relay,
+  QuicRClient(const QuicRTransport &transport,
               SubscriberDelegate& subscriber_delegate,
               PublisherDelegate& pub_delegate);
 
   // Recvonly client
-  QuicRClient(const RelayInfo relay,
+  QuicRClient(const QuicRTransport &transport,
               SubscriberDelegate& subscriber_delegate);
 
   // Sendonly client
-  QuicRClient(const RelayInfo relay,
+  QuicRClient(const QuicRTransport &transport,
               PublisherDelegate& pub_delegate);
 
 
@@ -352,7 +352,7 @@ class QuicRClient
    * @param[in] publishId The publisher Id of the message
    * @param auth_token    Authentication token for the origin
    */
-  void publish_intent_end(const QuicRNameId& name,
+  void publish_intent_fin(const QuicRNameId& name,
                           uint64_t publishId,
                           const std::string& auth_token);
 
@@ -449,13 +449,11 @@ class QuicRServer
    * @details A new server thread will be started with an event loop
    *   running to process received messages.
    *
-   * @param relay                Relay connection information to bind/accept from
+   * @param transport            QuicRTransport class implementation
    * @param serverDelegate       Server delegate (callback) class to use
-   * @param transport            QUIC transport implementation
    */
-  QuicRServer(const RelayInfo relay,
-              ServerDelegate& serverDelegate,
-              QuicRTransport transport);
+  QuicRServer(const QuicRTransport transport,
+              ServerDelegate& serverDelegate);
 
   /*
    * Send the result of processing the PublishIntent

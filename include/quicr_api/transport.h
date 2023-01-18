@@ -1,4 +1,6 @@
-#include <optional>
+#pragma once
+
+#include <c++/v1/optional>
 #include <unistd.h>
 
 namespace quicr {
@@ -217,6 +219,15 @@ class QuicRTransport
                        uint16_t timeoutMs) = 0;
 
   /**
+   * Gets the MTU size, which can change based on PMTUD
+   *
+   * @return MTU size in bytes
+   */
+  int getMtuSize() {
+    return mtuSize;
+  }
+
+  /**
    * Get Config
    *
    * @return copy of the configuration
@@ -225,8 +236,9 @@ class QuicRTransport
     return config;
   }
 
-private:
 
+private:
+  int mtuSize = 1280;     // MTU size, will adjust based on PMTUD
   int sockFd;             // UDP socket FD
   bool socketReady;       // Indicates if the UDP socket is opened and ready
 
