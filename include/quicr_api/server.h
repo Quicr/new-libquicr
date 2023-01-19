@@ -40,7 +40,7 @@ public:
    * @param[in] lastFragment    True if last fragment, false if not
    * @param[in] data            Data of the message received
    */
-  virtual void publishedMsg(const QuicRNameId& name,
+  virtual void onPublishedMsg(const QuicRNameId& name,
                          uint8_t            priority,
                          uint64_t           publishId,
                          uint32_t           seqId,
@@ -59,7 +59,7 @@ public:
    * @param authToken        Authentication token for the origin
    *
    */
-  virtual void subscribeRequest(const QuicRNameId& name,
+  virtual void onSubscribeRequest(const QuicRNameId& name,
                                 SubscribeJoinMode& joinMode,
                                 bool               useReliable,
                                 bool               acceptFragments,
@@ -73,7 +73,7 @@ public:
    * @param[in] name    Name Id of the subscribe request to unsubscribe
    * @param auth_token    Authentication token for the origin
    */
-  virtual void unsubscribeRequest(const QuicRNameId& name,
+  virtual void onUnsubscribeRequest(const QuicRNameId& name,
                                   const std::string& auth_token) = 0;
 
 
@@ -86,7 +86,7 @@ public:
    * @param useReliable   Request reliable transport for published messages
    * @param authToken     Authentication token for the origin
    */
-  virtual void publishIntentRequest(const QuicRNameId& name,
+  virtual void onPublishIntentRequest(const QuicRNameId& name,
                                     bool  useReliable,
                                     const std::string& authToken) = 0;
 
@@ -99,7 +99,7 @@ public:
    * @param[in] publishId   The publisher Id of the message
    * @param[in] authToken   Authentication token for the origin
    */
-  void publishIntentFinRequest(const QuicRNameId& name,
+  void onPublishIntentFinRequest(const QuicRNameId& name,
                                uint64_t publishId,
                                const std::string& authToken);
 

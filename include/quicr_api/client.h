@@ -35,7 +35,7 @@ public:
 
    * @param[in]  result         Subscription result of the subscribe request
    */
-  virtual void subscribeResponse(const QuicRNameId& name,
+  virtual void onSubscribeResponse(const QuicRNameId& name,
                                  const SubscribeResult& result) = 0;
 
   /**
@@ -45,7 +45,7 @@ public:
    * 
    * @param[in] name    Name Id of the subscribe request
    */
-  virtual void subscribeClose(const QuicRNameId& name) = 0;
+  virtual void onSubscribeClose(const QuicRNameId& name) = 0;
 
   /**
    * @brief Received published message callback
@@ -61,7 +61,7 @@ public:
    * @param[in] seqId           Message sequence Id. This is relative per publisher Id
    * @param[in] data            Data of the message received
    */
-  virtual void publishedMsg(const QuicRNameId& name,
+  virtual void onPublishedMsg(const QuicRNameId& name,
                             uint8_t            priority,
                             uint64_t           publishId,
                             uint32_t           seqId,
@@ -85,7 +85,7 @@ public:
    * @param[in] lastFragment    True if last fragment, false if not
    * @param[in] data            Data of the message received
    */
-  virtual void publishedMsg(const QuicRNameId& name,
+  virtual void onPublishedMsg(const QuicRNameId& name,
                             uint8_t            priority,
                             uint64_t           publishId,
                             uint32_t           seqId,
@@ -117,7 +117,7 @@ public:
    * @param[in] seqId     Message sequence Id. This is relative per publisher Id
    * @param[in] result    Result of the publish operation
    */
-  virtual void publishAck(const QuicRNameId&  name,
+  virtual void onPublishAck(const QuicRNameId&  name,
                             uint64_t            publishId,
                             const uint32_t      seqId,
                             PublishMsgResult&   result) = 0;
@@ -128,7 +128,7 @@ public:
    * @param[in] name      Original published name ID/len of publish intent
    * @param[in] result    Result of the publish operation
    */
-  virtual void publishIntentResponse(const QuicRNameId&   name,
+  virtual void onPublishIntentResponse(const QuicRNameId&   name,
                                        PublishIntentResult& result) = 0;
 
 };
