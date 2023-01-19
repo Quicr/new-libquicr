@@ -10,10 +10,11 @@
 namespace quicr {
 
 /**
- * Server/Relay callback methods
+ * @brief Server/Relay callback methods
  */
 class ServerDelegate
 {
+public:
   virtual ~ServerDelegate() = default;
 
   /**
@@ -106,10 +107,11 @@ class ServerDelegate
 
 
 /**
- * Server API for using QuicR Protocol
+ * @brief Server API for using QuicR Protocol
  */
 class QuicRServer
 {
+public:
   /**
    * @brief Construct a new QuicR Server
    *
@@ -122,6 +124,16 @@ class QuicRServer
   QuicRServer(const QuicRTransport transport,
               ServerDelegate& serverDelegate);
 
+
+  /**
+   * @brief Run Server API event loop
+   *
+   * @details This method will open listening sockets and run an event loop
+   *    for callbacks.
+   *
+   * @returns true if error, false if no error
+   */
+  virtual bool run() = 0;
 
   /**
    * @brief Send publish intent ok

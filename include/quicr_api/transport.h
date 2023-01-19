@@ -5,11 +5,8 @@
 
 namespace quicr {
 
-///
-/// Common Defines
-///
 /**
- * Return status
+ * @brief Transport return status
  */
 enum class TransportReturnStatus
 {
@@ -26,7 +23,7 @@ enum class TransportReturnStatus
 
 
 /**
- * Transport destination IP information
+ * @brief Transport destination IP information
  */
 struct TransportDestination {
   std::string   hostname;  // Relay IP or FQDN
@@ -34,7 +31,7 @@ struct TransportDestination {
 };
 
 /**
- * Transport Configuration
+ * @brief Transport Configuration
  */
 struct TransportConfig {
   TransportDestination dest;
@@ -60,6 +57,7 @@ struct TransportConfig {
  */
 class QuicRTransport
 {
+public:
   /**
    * Constructor
    *
@@ -129,7 +127,7 @@ class QuicRTransport
 
 
   /**
-   * Gets connection state
+   * @brief Gets connection state
    *
    * @param[in] sCid            Source connectionId to disconnect/terminate
    *
@@ -219,7 +217,7 @@ class QuicRTransport
                        uint16_t timeoutMs) = 0;
 
   /**
-   * Gets the MTU size, which can change based on PMTUD
+   * @brief Gets the MTU size, which can change based on PMTUD
    *
    * @return MTU size in bytes
    */
@@ -228,7 +226,7 @@ class QuicRTransport
   }
 
   /**
-   * Get Config
+   * @brief Get transport config
    *
    * @return copy of the configuration
    */

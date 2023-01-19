@@ -10,7 +10,7 @@
 namespace quicr {
 
 /**
- * Subscriber delegate callback methods
+ * @brief Subscriber delegate callback methods
  * 
  * @note
  *  Fragments are handled by the library/implementation.  The client implementing
@@ -22,6 +22,7 @@ namespace quicr {
  */
 class SubscriberDelegate
 {
+public:
   virtual ~SubscriberDelegate() = default;
 
   /**
@@ -94,7 +95,7 @@ class SubscriberDelegate
 };
 
 /**
- *  Publisher delegate callback methods
+ * @brief Publisher delegate callback methods
  *
  * @note
  *  Published messages are always complete messages. Fragmenting is handled by the library and
@@ -103,6 +104,7 @@ class SubscriberDelegate
  */
 class PublisherDelegate
 {
+public:
   virtual ~PublisherDelegate() = default;
 
   /**
@@ -132,10 +134,11 @@ class PublisherDelegate
 };
 
 /**
- * Client API for using QuicR Protocol
+ * @brief Client API for using QuicR Protocol
  */
 class QuicRClient
 {
+public:
   enum class ClientStatus {
       READY = 0,
       CONNECTING, 
@@ -181,8 +184,17 @@ class QuicRClient
    * 
    * @returns client status
    */
-  ClientStatus status();
+  virtual ClientStatus status() = 0;
 
+  /**
+   * @brief Run client API event loop
+   *
+   * @details This method will connect to the relay/transport and run
+   *    an event loop for calling the callbacks
+   *
+   * @returns client status
+   */
+  virtual ClientStatus run() = 0;
 
   /**
    * @brief Send Publish Intent
@@ -215,9 +227,9 @@ class QuicRClient
    *    accepted and authorized by the origin.  Publisher delegate
    *    is used for that. 
    */
-  bool publishIntent(const QuicRNameId& name,
-                      bool  useReliable,
-                      const std::string& authToken);
+  virtual bool publishIntent(const QuicRNameId& name,
+                             bool  useReliable,
+                             const std::string& authToken) = 0;
 
   /**
    * @brief Publish a message
@@ -239,12 +251,12 @@ class QuicRClient
    *    that the message was sent to the relay. Publisher delegate
    *    is used to confirm ack/response from relay.
    */
-  bool publishMsg(const QuicRNameId& name,
-                  uint8_t            priority,
-                  uint32_t           ttl,
-                  uint64_t           publishId,
-                  uint32_t           seqId,
-                  const bytes&       data);
+  virtual bool publishMsg(const QuicRNameId& name,
+                          uint8_t            priority,
+                          uint32_t           ttl,
+                          uint64_t           publishId,
+                          uint32_t           seqId,
+                          const bytes&       data) = 0;
 
 
   /**
@@ -259,9 +271,9 @@ class QuicRClient
    * @param[in] publishId The publisher Id of the message
    * @param[in] authToken    Authentication token for the origin
    */
-  void publishIntentFin(const QuicRNameId& name,
-                        uint64_t publishId,
-                        const std::string& authToken);
+  virtual void publishIntentFin(const QuicRNameId& name,
+                                uint64_t publishId,
+                                const std::string& authToken) = 0;
 
   /**
    * @brief Subscribe to given QuicRName/len
@@ -277,11 +289,11 @@ class QuicRClient
    *    that the message was sent to the relay. It does not indicate if it was
    *    accepted and authorized.  Subscriber delegate is used for that. 
    */
-  bool subscribe(const QuicRNameId& name,
-                 SubscribeJoinMode& joinMode,
-                 bool               useReliable,
-                 bool               acceptFragments,
-                 const std::string& authToken);
+  virtual bool subscribe(const QuicRNameId& name,
+                         SubscribeJoinMode& joinMode,
+                         bool               useReliable,
+                         bool               acceptFragments,
+                         const std::string& authToken) = 0;
 
 
   /**
@@ -290,7 +302,7 @@ class QuicRClient
    * @param name          Name ID/Len to unsubscribe. Must match the subscription
    * @param auth_token    Authentication token for the origin
    */
-  void unsubscribe(const QuicRNameId& name, const std::string& auth_token);
+  virtual void unsubscribe(const QuicRNameId& name, const std::string& auth_token) = 0;
 
 
 };

@@ -7,6 +7,21 @@ Please see for further details
 
 The actual protocol implementation is covered [here](https://github.com/Quicr/quicrq).
 
+Generate Documentation
+----------------------
+
+Install [doxygen](www.doxygen.org). 
+
+```
+brew install doxygen
+```
+
+Run the below to generate the documentation.  The docs will be under [docs](docs/)
+
+```
+doxygen Doxyfile
+```
+
 Quickstart
 ----------
 ### Cmake FetchContent

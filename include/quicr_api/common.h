@@ -12,8 +12,9 @@ namespace quicr {
 using bytes = std::vector<uint8_t>;
 
 /**
- * QuicRNameId is the published name that identifies a set of subscribers.
- * 
+ * @brief Published name that identifies a set of subscribers
+ *
+ * @details
  *   While this value is opaque to the relays, it is used by origins for authorization. 
  *   The name and origin servers are application/deployment specific.  
  *   
@@ -46,21 +47,24 @@ using bytes = std::vector<uint8_t>;
  *    with a length value that indicates the significant bits that will be used to match
  *    a set of subscribers and publish intent (authorizations) requests.
  *
- * @example Usage:
- *  QuicRNameId nameId;
- *  nameId.length = 120;
- *  nameId.value.asNum.hi = 0xF000000000000000;
- *  nameId.value.asNum.low = 0x0000000000000001;
- *  nameId.value.asNum.hi >>=12;
- *  nameId.value.asNum.low |= 0x8000000000000000;
+ *   Example:
  *
- *  nameId.makeNbo();
- *  nameId.makeNbo();
+ * ~~~~~{.cpp}
+ *      QuicRNameId nameId;
+ *      nameId.length = 120;
+ *      nameId.value.asNum.hi = 0xF000000000000000;
+ *      nameId.value.asNum.low = 0x0000000000000001;
+ *      nameId.value.asNum.hi >>=12;
+ *      nameId.value.asNum.low |= 0x8000000000000000;
+ *
+ *      nameId.makeNbo();
+ *      nameId.makeNbo();
 
- *  for (int i=0; i < 16; i++) {
- *    if (i == 8) printf(" -");
- *    printf(" %02X", nameId.value.asBytes[i]);
- *  }
+ *      for (int i=0; i < 16; i++) {
+ *          if (i == 8) printf(" -");
+ *          printf(" %02X", nameId.value.asBytes[i]);
+ *      }
+ * ~~~~~
 */
 class QuicRNameId {
 private:
@@ -131,7 +135,7 @@ enum class SubscribeJoinMode
 
 
 /** 
- * RelayInfo defines the connection information for relays
+ * @brief RelayInfo defines the connection information for relays
 */
 struct RelayInfo {
   std::string   hostname;  // Relay IP or FQDN
@@ -139,7 +143,7 @@ struct RelayInfo {
 };
 
 /**
- * SubscribeResult defines the result of a subscription request
+ * @brief SubscribeResult defines the result of a subscription request
  */
 struct SubscribeResult {
 
@@ -160,7 +164,7 @@ struct SubscribeResult {
 };
 
 /**
- * Publish intent and message status
+ * @brief Publish intent and message status
  */
 enum class PublishStatus
 {
@@ -173,7 +177,7 @@ enum class PublishStatus
 };
 
 /**
- * PublishIntentResult defines the result of a publish intent
+ * @brief PublishIntentResult defines the result of a publish intent
  */
 struct PublishIntentResult
 {
@@ -185,7 +189,7 @@ struct PublishIntentResult
 };
 
 /**
- * PublishMsgResult defines the result of a publish message
+ * @brief PublishMsgResult defines the result of a publish message
  */
 struct PublishMsgResult
 {
