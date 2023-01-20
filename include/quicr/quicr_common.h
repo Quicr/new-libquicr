@@ -16,6 +16,83 @@ using bytes = std::vector<uint8_t>;
 */
 using QUICRContext = uint64_t;
 
+
+
+/**
+ * Published media objects are uniquely identified with QUICRName.
+ * The construction and the intepretation of the bits are
+ * application specific. QUICR protocol and API must consider
+ * these bits as opaque
+  *
+  *   Example:
+  *
+  * ~~~~~{.cpp}
+  *      QuicRNameId nameId;
+  *      nameId.length = 120;
+  *      nameId.value.asNum.hi = 0xF000000000000000;
+  *      nameId.value.asNum.low = 0x0000000000000001;
+  *      nameId.value.asNum.hi >>=12;
+  *      nameId.value.asNum.low |= 0x8000000000000000;
+  *
+  *      nameId.makeNbo();
+  *      nameId.makeNbo();
+  *      for (int i=0; i < 16; i++) {
+  *          if (i == 8) printf(" -");
+  *          printf(" %02X", nameId.value.asBytes[i]);
+  *      }
+  * ~~~~~
+ */
+class QuicRName {
+private:
+  bool bigEndian;
+
+  union Value {
+    struct {
+      uint64_t hi;    // Little endian, use htonll() to set
+      uint64_t low;   // Little endian, use htonll() to set
+    } __attribute__ ((__packed__, __aligned__(1))) asNum;
+
+    uint8_t asBytes[16];
+  } __attribute__ ((__packed__, __aligned__(1)));
+
+public:
+  Value     value;      // The value of the name Id
+  uint8_t   length;     // Number of significant bits (big-endian) of hi + low bits.  0 - 128
+
+  QuicRName () : bigEndian(false) {};
+
+  /**
+   * Checks if the name is Big or Little endian encoded
+   *
+   * @return true if big endian, false if little endian
+   */
+  bool isBigEndian() {
+    return bigEndian;
+  }
+
+  /**
+   * Encode/Decode nameId in Network Byte Order
+   */
+  void makeNbo() {
+    if (not bigEndian) {
+      value.asNum.hi = htonll(value.asNum.hi);
+      value.asNum.low = htonll(value.asNum.low);
+      bigEndian = true;
+    }
+  }
+
+  /**
+   * Encode/Decode nameId in Host Byte Order
+   */
+  void makeHbo() {
+    if (bigEndian) {
+      value.asNum.hi = ntohll(value.asNum.hi);
+      value.asNum.low = ntohll(value.asNum.low);
+      bigEndian = false;
+    }
+  }
+};
+
 /**
  *  QUICRNamespace identifies set of possible QUICRNames 
  *  The mask length captures the length of bits, up to 128 bits, that are
@@ -24,22 +101,10 @@ using QUICRContext = uint64_t;
  */
 struct QUICRNamespace
 {
-  uint64_t hi;      // High ordered bits of the 128bit name Id (on-wire is big-endian) 
-  uint64_t low;     // Low ordered bits of the 128bit name Id (on-wire is big-endian)
+  QuicRName name;
   size_t mask{ 0 }; // Number of significant bits (big-endian) of hi + low bits.  0 - 128
 };
 
-/** 
- * Published media objects are uniquely identifed with QUICRName. 
- * The construction and the intepretation of the bits are 
- * application specific. QUICR protocol and API must consider 
- * these bits as opaque
-*/
-struct QUICRName
-{
-  uint64_t hi; 
-  uint64_t low;
-};
 
 /** 
  * Hint providing the start point to serve a subscrption request.
@@ -57,17 +122,8 @@ enum class SubscribeIntent
  * RelayInfo defines the connection information for relays
  */
 struct RelayInfo {
-
-  enum class Protocol {
-    QUIC = 0,
-    UDP,
-    TLS,
-    TCP
-  };
-
   std::string   hostname;  // Relay IP or FQDN
   uint16_t      port;      // Relay port to connect to
-  Protocol proto;          // Transport protocol to use 
 };
 
 /**
