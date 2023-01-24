@@ -21,8 +21,8 @@ public:
     size_t size() const;
     std::string to_hex() const;
 
-    Name operator>>(uint64_t value);
-    Name operator<<(uint64_t value);
+    Name operator>>(uint16_t value);
+    Name operator<<(uint16_t value);
     Name operator+(uint64_t value);
     Name operator-(uint64_t value);
     Name operator&(uint64_t value);
