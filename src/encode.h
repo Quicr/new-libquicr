@@ -102,6 +102,41 @@ operator>>(MessageBuffer& buffer, SubscribeEnd& msg);
 // Publish Message Types
 /*===========================================================================*/
 
+struct PublishIntent
+{
+  MessageType message_type;
+  //  *     origin_url_length(i),
+  //  *     origin_url(…)…,
+  uint64_t transaction_id;
+  QUICRNamespace quicr_namespace;
+  uint8_t mask;
+  //  *     relay_auth_token_length(i),
+  //  *     relay_token(…),
+   std::vector<uint8_t> payload;
+   uintVar_t media_id;
+   uintVar_t datagram_capable;
+};
+
+void
+operator<<(MessageBuffer& buffer, const PublishIntent& msg);
+bool
+operator>>(MessageBuffer& buffer, PublishIntent& msg);
+
+struct PublishIntentResponse
+{
+  MessageType message_type;
+  Response response;
+  uint64_t transaction_id;
+  // *  signature(32)
+  // *  [Reason Phrase Length (i),
+  // *  [Reason Phrase (..)],
+};
+
+void
+operator<<(MessageBuffer& buffer, const PublishIntentResponse& msg);
+bool
+operator>>(MessageBuffer& buffer, PublishIntentResponse& msg);
+
 struct Header
 {
   uintVar_t media_id;
@@ -128,5 +163,17 @@ void
 operator<<(MessageBuffer& buffer, const PublishDatagram& msg);
 bool
 operator>>(MessageBuffer& buffer, PublishDatagram& msg);
+
+
+struct PublishStream
+{
+  uintVar_t media_data_length;
+  std::vector<uint8_t> media_data;
+};
+
+void
+operator<<(MessageBuffer& buffer, const PublishStream& msg);
+bool
+operator>>(MessageBuffer& buffer, PublishStream& msg);
 
 }

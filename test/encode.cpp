@@ -1,11 +1,14 @@
 #include <doctest/doctest.h>
 #include <memory>
 
-// TODO (suhas) : Can this be done better ?
-#include "../src/encode.h"
+#include "encode.h"
 
 using namespace quicr;
 using namespace quicr::messages;
+
+/*===========================================================================*/
+// Subscribe Message Types
+/*===========================================================================*/
 
 TEST_CASE("Subscribe Message encode/decode")
 {
@@ -54,6 +57,11 @@ TEST_CASE("SubscribeEnd Message encode/decode")
   CHECK_EQ(s_out.media_id, s.media_id);
   CHECK_EQ(s_out.payload, s.payload);
 }
+
+
+/*===========================================================================*/
+// Publish Message Types
+/*===========================================================================*/
 
 TEST_CASE("Publish Message encode/decode")
 {
