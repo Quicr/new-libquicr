@@ -129,3 +129,18 @@ TEST_CASE("PublishStream Message encode/decode")
   CHECK_EQ(ps_out.media_data_length, ps.media_data_length);
   CHECK_EQ(ps_out.media_data, ps.media_data);
 }
+
+TEST_CASE("PublishIntentEnd Message encode/decode")
+{
+  const std::string name = "12345";
+  PublishIntentEnd pie{ MessageType::Publish, uintVar_t{5}, {name.begin(), name.end()}, {0, 1, 2, 3, 4} };
+  MessageBuffer buffer;
+  buffer << pie;
+  PublishIntentEnd pie_out;
+  CHECK((buffer >> pie_out));
+
+  CHECK_EQ(pie_out.message_type, pie.message_type);
+  CHECK_EQ(pie_out.name_length, pie.name_length);
+  CHECK_EQ(pie_out.name, pie.name);
+  CHECK_EQ(pie_out.payload, pie.payload);
+}

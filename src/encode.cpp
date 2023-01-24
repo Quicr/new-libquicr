@@ -229,4 +229,31 @@ operator>>(MessageBuffer& buffer, PublishStream& msg)
   return msg.media_data.size() == static_cast<size_t>(msg.media_data_length);
 }
 
+void
+operator<<(MessageBuffer& buffer, const PublishIntentEnd& msg)
+{
+  buffer << msg.payload;
+  buffer << msg.name;
+  buffer << msg.name_length;
+  buffer << static_cast<uint8_t>(msg.message_type);
+}
+
+bool
+operator>>(MessageBuffer& buffer, PublishIntentEnd& msg)
+{
+  uint8_t msg_type;
+  buffer >> msg_type;
+  msg.message_type = static_cast<MessageType>(msg_type);
+
+  buffer >> msg.name_length;
+  buffer >> msg.name;
+
+  if (msg.name.size() != static_cast<size_t>(msg.name_length))
+    return false;
+
+  buffer >> msg.payload;
+
+  return true;
+}
+
 }

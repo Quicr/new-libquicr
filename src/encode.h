@@ -177,4 +177,19 @@ operator<<(MessageBuffer& buffer, const PublishStream& msg);
 bool
 operator>>(MessageBuffer& buffer, PublishStream& msg);
 
+struct PublishIntentEnd
+{
+  MessageType message_type;
+  uintVar_t name_length;
+  std::vector<uint8_t> name;
+  //  * relay_auth_token_length(i),
+  //  * relay_token(…),
+  std::vector<uint8_t> payload;
+ };
+
+void
+operator<<(MessageBuffer& buffer, const PublishIntentEnd& msg);
+bool
+operator>>(MessageBuffer& buffer, PublishIntentEnd& msg);
+
 }
