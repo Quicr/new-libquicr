@@ -226,7 +226,7 @@ operator>>(MessageBuffer& buffer, PublishStream& msg)
   buffer >> msg.media_data_length;
   buffer >> msg.media_data;
 
-  return msg.media_data.size() != static_cast<size_t>(msg.media_data_length);
+  return msg.media_data.size() == static_cast<size_t>(msg.media_data_length);
 }
 
 }

@@ -44,6 +44,7 @@ enum class Response : uint8_t
   Redirect = 3
 };
 
+
 /*===========================================================================*/
 // Subscribe Message Types
 /*===========================================================================*/
@@ -97,6 +98,7 @@ void
 operator<<(MessageBuffer& buffer, const SubscribeEnd& msg);
 bool
 operator>>(MessageBuffer& buffer, SubscribeEnd& msg);
+
 
 /*===========================================================================*/
 // Publish Message Types
@@ -163,7 +165,6 @@ void
 operator<<(MessageBuffer& buffer, const PublishDatagram& msg);
 bool
 operator>>(MessageBuffer& buffer, PublishDatagram& msg);
-
 
 struct PublishStream
 {
