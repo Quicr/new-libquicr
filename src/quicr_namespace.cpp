@@ -1,4 +1,4 @@
-#include "quicr_namespace.h"
+#include <quicr/quicr_namespace.h>
 
 
 namespace quicr
