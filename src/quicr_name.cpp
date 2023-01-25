@@ -44,33 +44,27 @@ Name::Name(const std::string& hex_value)
 }
 
 Name::Name(uint8_t* data, size_t length)
+    : Name(std::vector<uint8_t>{data, data + length})
 {
-    const size_t size_of = sizeof(Name::uint_type);
+}
 
-    for (size_t i = 0; i < std::min(length, size_of); ++i)
-    {
-        _low |= (data[i] << 8 * i);
-    }
-
-    for (size_t i = size_of; i < length; ++i)
-    {
-        _hi |= (data[i] << 8 * i);
-    }
+Name::Name(const uint8_t* data, size_t length)
+    : Name(std::vector<uint8_t>{data, data + length})
+{
 }
 
 Name::Name(const std::vector<uint8_t>& data)
 {
     const size_t size_of = sizeof(Name::uint_type);
+    auto midpoint = std::prev(data.end(), size_of);
+    
+    std::vector<uint8_t> hi_bits{data.begin(), midpoint};
+    std::memcpy(&_hi, hi_bits.data(), hi_bits.size());
 
-    for (size_t i = 0; i < std::min(data.size(), size_of); ++i)
-    {
-        _low |= (data[i] << 8 * i);
-    }
+    std::vector<uint8_t> low_bits{midpoint, data.end()};
+    std::memcpy(&_low, low_bits.data(), low_bits.size());
 
-    for (size_t i = size_of; i < data.size(); ++i)
-    {
-        _hi |= (data[i] << 8 * i);
-    }
+    std::cout << to_hex() << std::endl;
 }
 
 Name::Name(const Name& other) : _hi{other._hi}, _low{other._low} {}

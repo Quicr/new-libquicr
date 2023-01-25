@@ -14,6 +14,7 @@ public:
     Name(uint_type value);
     Name(const std::string& hex_value);
     Name(uint8_t* data, size_t length);
+    Name(const uint8_t* data, size_t length);
     Name(const std::vector<uint8_t>& data);
     Name(const Name& other);
     Name(Name&& other);
