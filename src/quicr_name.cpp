@@ -13,7 +13,6 @@ namespace quicr
 {
 Name::Name(uint_type value) : _hi{0}, _low{value} {}
 
-// Note: This assumes string has 0x prefix!
 Name::Name(const std::string& hex_value)
 {
     std::string clean_hex = hex_value;
