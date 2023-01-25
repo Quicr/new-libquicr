@@ -68,6 +68,18 @@ TEST_CASE("QUICR::Name Basic Test ")
 
   CHECK( quicr::Name("0x123") != quicr::Name("0x122") );
 
-  CHECK( (quicr::Name("0x123456789abcd012") >> 64) ==  quicr::Name( 0x12345678 ) );
-  CHECK( quicr::Name("0x123456789abcd0FFFFFFFFFFFFFF") + 1 ==  quicr::Name("0x123456789abcd10000000000000000" ) );
+  CHECK( (quicr::Name("0x0123456789abcdef0123456789abcdef") >> 64) ==  quicr::Name( 0x123456789abcdef ) );
+  CHECK( quicr::Name("0x0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF") + 1 ==  quicr::Name("0x10000000000000000000000000000000" ) );
+
+  auto arith_and = quicr::Name("0x01010101010101010101010101010101") & quicr::Name("0x10101010101010101010101010101010");
+  CHECK( arith_and ==  quicr::Name("0x0" ) );
+
+  auto arith_and2 = quicr::Name("0x0101010101010101") & 0x1010101010101010;
+  CHECK( arith_and2 ==  quicr::Name("0x0" ) );
+
+  auto arith_or = quicr::Name("0x01010101010101010101010101010101") | quicr::Name("0x10101010101010101010101010101010");
+  CHECK( arith_or ==  quicr::Name("0x11111111111111111111111111111111" ) );
+
+  auto arith_or2 = quicr::Name("0x0101010101010101") | 0x1010101010101010;
+  CHECK( arith_or2 ==  quicr::Name("0x1111111111111111" ) );
 }

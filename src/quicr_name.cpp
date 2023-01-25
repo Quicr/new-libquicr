@@ -11,16 +11,27 @@
 
 namespace quicr
 {
-Name::Name(uint64_t value) : _hi{0}, _low{value} {}
+Name::Name(uint_type value) : _hi{0}, _low{value} {}
 
 // Note: This assumes string has 0x prefix!
 Name::Name(const std::string& hex_value)
 {
-    const auto size_of = sizeof(uint64_t);
-    if (hex_value.length() - 2 > size_of)
+    std::string clean_hex = hex_value;
+    auto found = clean_hex.find("0x");
+    if (found != std::string::npos)
+        clean_hex.erase(found, 2);
+
+    const auto size_of = sizeof(Name::uint_type) * 2;
+    if (clean_hex.length() > size_of * 2)
+        throw NameException("Hex string cannot be longer than " + std::to_string(size_of * 2) + " bytes");
+
+    if (clean_hex.length() > size_of)
     {
-        std::string hi_bits = hex_value.substr(0, size_of + 2);
-        std::string low_bits = "0x" + hex_value.substr(size_of, size_of);
+        size_t midpoint = clean_hex.length() - size_of;
+
+        std::string low_bits = "0x" + clean_hex.substr(midpoint, size_of);
+        clean_hex.erase(midpoint, size_of);
+        std::string hi_bits = "0x" + clean_hex;
 
         _hi = std::stoull(hi_bits, nullptr, 16);
         _low = std::stoull(low_bits, nullptr, 16);
@@ -28,13 +39,13 @@ Name::Name(const std::string& hex_value)
     else
     {
         _hi = 0;
-        _low = std::stoull(hex_value, nullptr, 16);
+        _low = std::stoull(clean_hex, nullptr, 16);
     }
 }
 
 Name::Name(uint8_t* data, size_t length)
 {
-    const size_t size_of = sizeof(uint64_t);
+    const size_t size_of = sizeof(Name::uint_type);
 
     for (size_t i = 0; i < std::min(length, size_of); ++i)
     {
@@ -49,7 +60,7 @@ Name::Name(uint8_t* data, size_t length)
 
 Name::Name(const std::vector<uint8_t>& data)
 {
-    const size_t size_of = sizeof(uint64_t);
+    const size_t size_of = sizeof(Name::uint_type);
 
     for (size_t i = 0; i < std::min(data.size(), size_of); ++i)
     {
@@ -68,9 +79,9 @@ Name::Name(Name&& other) : _hi{std::move(other._hi)}, _low{std::move(other._low)
 
 std::vector<uint8_t> Name::data() const
 {
-    auto make_bytes = [](uint64_t v) {
-        std::vector<uint8_t> result(sizeof(uint64_t));
-        for (size_t i = 0; i < sizeof(uint64_t); ++i) {
+    auto make_bytes = [](Name::uint_type v) {
+        std::vector<uint8_t> result(sizeof(Name::uint_type));
+        for (size_t i = 0; i < sizeof(Name::uint_type); ++i) {
             result[i] = static_cast<uint8_t>((v >> 8 * i));
         }
         return result;
@@ -91,23 +102,32 @@ size_t Name::size() const
 std::string Name::to_hex() const
 {
   std::stringstream stream;
-  stream << "0x" << std::hex << (_hi > 0 ? std::to_string(_hi) : "") << _low;
+  stream << "0x" << std::hex;
+
+  if (_hi != 0)
+    stream << _hi;
+
+  stream << _low;
   return stream.str();
 }
 
-using bitset_t = std::bitset<128>;
-static const bitset_t bitset_divider(std::numeric_limits<uint64_t>::max());
-static bitset_t make_bitset(uint64_t low, uint64_t hi)
+
+static const size_t uint_type_bit_size = sizeof(Name::uint_type) * 8;
+static const size_t max_uint_type_bit_size = uint_type_bit_size * 2;
+using bitset_t = std::bitset<max_uint_type_bit_size>;
+static const bitset_t bitset_divider(std::numeric_limits<Name::uint_type>::max());
+
+static bitset_t make_bitset(Name::uint_type low, Name::uint_type hi)
 {
     bitset_t bits;
-    bits |= bitset_t(low) | (bitset_t(hi) << 64);
+    bits |= bitset_t(low) | (bitset_t(hi) << uint_type_bit_size);
     return bits;
 }
 
-static std::pair<uint64_t, uint64_t> split_bitset(const bitset_t& bits)
+static std::pair<Name::uint_type, Name::uint_type> split_bitset(const bitset_t& bits)
 {
-    uint64_t a = (bits & bitset_divider).to_ullong();
-    uint64_t b = (bits >> 64 & bitset_divider).to_ullong();
+    Name::uint_type a = (bits & bitset_divider).to_ullong();
+    Name::uint_type b = (bits >> uint_type_bit_size & bitset_divider).to_ullong();
     return {a, b};
 }
 
@@ -147,17 +167,20 @@ static bitset_t add_bitset(const bitset_t& x, const bitset_t& y)
     return result;
 }
 
-Name Name::operator+(uint64_t value)
+Name Name::operator+(uint_type value)
+{
+    Name name(*this);
+    name += value;
+    return name;
+}
+
+void Name::operator+=(uint_type value)
 {
     auto bits = make_bitset(_low, _hi);
     bitset_t value_bits(value);
 
     auto result_bits = add_bitset(bits, value_bits);
-
-    Name name(*this);
-    std::tie(name._low, name._hi) = split_bitset(result_bits);
-
-    return name;
+    std::tie(_low, _hi) = split_bitset(result_bits);
 }
 
 static bitset_t sub_bitset(const bitset_t& x, const bitset_t& y)
@@ -177,45 +200,71 @@ static bitset_t sub_bitset(const bitset_t& x, const bitset_t& y)
 
     return result;
 }
-Name Name::operator-(uint64_t value)
+
+Name Name::operator-(uint_type value)
+{
+    Name name(*this);
+    name -= value;
+    return name;
+}
+
+void Name::operator-=(uint_type value)
 {
     auto bits = make_bitset(_low, _hi);
     bitset_t value_bits(value);
 
     auto result_bits = sub_bitset(bits, value_bits);
+    std::tie(_low, _hi) = split_bitset(result_bits);
+}
 
+Name Name::operator&(uint_type value)
+{
     Name name(*this);
-    std::tie(name._low, name._hi) = split_bitset(result_bits);
-
+    name &= value;
     return name;
 }
 
-Name Name::operator&(uint64_t value)
+void Name::operator&=(uint_type value)
 {
-    // TODO: No way that's enough, figure out what more to do.
     _low &= value;
-    return *this;
 }
 
-Name Name::operator|(uint64_t value)
+Name Name::operator|(uint_type value)
 {
-    // TODO: No way that's enough, figure out what more to do.
+    Name name(*this);
+    name |= value;
+    return name;
+}
+
+void Name::operator|=(uint_type value)
+{
     _low |= value;
-    return *this;
 }
 
 Name Name::operator&(const Name& other)
 {
+    Name name = *this;
+    name &= other;
+    return name;
+}
+
+void Name::operator&=(const Name& other)
+{
     _hi &= other._hi;
     _low &= other._low;
-    return *this;
 }
 
 Name Name::operator|(const Name& other)
 {
+    Name name = *this;
+    name |= other;
+    return name;
+}
+
+void Name::operator|=(const Name& other)
+{
     _hi |= other._hi;
     _low |= other._low;
-    return *this;
 }
 
 Name& Name::operator=(const Name& other)
