@@ -18,7 +18,17 @@ Name::Name(const std::string& hex_value)
 
 Name::Name(uint8_t* data, size_t length)
 {
+    const size_t size_of = sizeof(uint64_t);
 
+    for (size_t i = 0; i < std::min(length, size_of); ++i)
+    {
+        _low |= (data[i] << 8 * i);
+    }
+
+    for (size_t i = size_of; i < length; ++i)
+    {
+        _hi |= (data[i] << 8 * i);
+    }
 }
 
 Name::Name(const std::vector<uint8_t>& data)
@@ -42,10 +52,9 @@ Name::Name(Name&& other) : _hi{std::move(other._hi)}, _low{std::move(other._low)
 
 std::vector<uint8_t> Name::data() const
 {
-    const auto _size_of = sizeof(uint64_t);
-    auto make_bytes = [_size_of](uint64_t v) {
-        std::vector<uint8_t> result(_size_of);
-        for (size_t i = 0; i < _size_of; ++i) {
+    auto make_bytes = [](uint64_t v) {
+        std::vector<uint8_t> result(sizeof(uint64_t));
+        for (size_t i = 0; i < sizeof(uint64_t); ++i) {
             result[i] = static_cast<uint8_t>((v >> 8 * i));
         }
         return result;
@@ -60,6 +69,7 @@ std::vector<uint8_t> Name::data() const
 
 size_t Name::size() const
 {
+    return data().size();
 }
 
 std::string Name::to_hex() const
@@ -141,14 +151,9 @@ Name Name::operator+(uint64_t value)
 static bitset_t sub_bitset(const bitset_t& x, const bitset_t& y)
 {
     auto full_subtractor = [](bool a, bool b, bool& borrow) {
-        if (borrow)
-        {
-            borrow = !a || (a && b);
-            return !(a ^ b);
-        }
-
-        borrow = !a && b;
-        return !!(a ^ b);
+        bool diff = a ^ b ^ borrow;
+        borrow = (!a && borrow) || (!a && b) || (b && borrow);
+        return diff;
     };
 
     bool carry = false;
@@ -215,7 +220,7 @@ Name& Name::operator=(Name&& other)
 
 bool operator==(const Name& a, const Name& b)
 {
-    return !(a._hi ^ b._hi | a._low ^ b._low);
+    return !((a._hi ^ b._hi) | (a._low ^ b._low));
 }
 
 bool operator!=(const Name& a, const Name& b)
