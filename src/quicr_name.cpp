@@ -17,13 +17,13 @@ Name::Name(uint64_t value) : _hi{0}, _low{value} {}
 Name::Name(const std::string& hex_value)
 {
     const auto size_of = sizeof(uint64_t);
-    if (hex_value.length() - 2 > size_of * 2)
+    if (hex_value.length() - 2 > size_of)
     {
         std::string hi_bits = hex_value.substr(0, size_of + 2);
-        std::string low_bits = hex_value.substr(size_of, size_of);
-        
+        std::string low_bits = "0x" + hex_value.substr(size_of, size_of);
+
         _hi = std::stoull(hi_bits, nullptr, 16);
-        _low = std::stoull("0x" + low_bits, nullptr, 16);
+        _low = std::stoull(low_bits, nullptr, 16);
     }
     else
     {
@@ -91,13 +91,7 @@ size_t Name::size() const
 std::string Name::to_hex() const
 {
   std::stringstream stream;
-  stream << "0x"
-         << std::setfill ('0') 
-         << std::setw(sizeof(uint64_t)*2)
-         << std::hex 
-         << _hi
-         << std::setw(sizeof(uint64_t)*2)
-         << _low;
+  stream << "0x" << std::hex << (_hi > 0 ? std::to_string(_hi) : "") << _low;
   return stream.str();
 }
 
@@ -120,7 +114,7 @@ static std::pair<uint64_t, uint64_t> split_bitset(const bitset_t& bits)
 Name Name::operator>>(uint16_t value)
 {
     auto bits = make_bitset(_low, _hi);
-    bits >> value;
+    bits >>= value;
     std::tie(_low, _hi) = split_bitset(bits);
 
     return *this;
@@ -129,7 +123,7 @@ Name Name::operator>>(uint16_t value)
 Name Name::operator<<(uint16_t value)
 {
     auto bits = make_bitset(_low, _hi);
-    bits << value;
+    bits <<= value;
     std::tie(_low, _hi) = split_bitset(bits);
 
     return *this;
@@ -159,9 +153,11 @@ Name Name::operator+(uint64_t value)
     bitset_t value_bits(value);
 
     auto result_bits = add_bitset(bits, value_bits);
-    std::tie(_low, _hi) = split_bitset(result_bits);
 
-    return *this;
+    Name name(*this);
+    std::tie(name._low, name._hi) = split_bitset(result_bits);
+
+    return name;
 }
 
 static bitset_t sub_bitset(const bitset_t& x, const bitset_t& y)
@@ -172,11 +168,11 @@ static bitset_t sub_bitset(const bitset_t& x, const bitset_t& y)
         return diff;
     };
 
-    bool carry = false;
+    bool borrow = false;
     bitset_t result;
     for (size_t i = 0; i < x.size(); ++i)
     {
-        result[i] = full_subtractor(x[i], y[i], carry);
+        result[i] = full_subtractor(x[i], y[i], borrow);
     }
 
     return result;
@@ -187,9 +183,11 @@ Name Name::operator-(uint64_t value)
     bitset_t value_bits(value);
 
     auto result_bits = sub_bitset(bits, value_bits);
-    std::tie(_low, _hi) = split_bitset(result_bits);
 
-    return *this;   
+    Name name(*this);
+    std::tie(name._low, name._hi) = split_bitset(result_bits);
+
+    return name;
 }
 
 Name Name::operator&(uint64_t value)
@@ -251,6 +249,12 @@ bool operator>(const Name& a, const Name& b)
 
 bool operator<(const Name& a, const Name& b)
 {
-    return std::tie(a._hi, b._low) < std::tie(b._hi, b._low);
+    return std::tie(a._hi, a._low) < std::tie(b._hi, b._low);
+}
+
+std::ostream& operator<<(std::ostream& os, const Name& name)
+{
+    os << name.to_hex();
+    return os;
 }
 }

@@ -38,6 +38,8 @@ public:
     friend bool operator==(const Name& a, const Name& b);
     friend bool operator!=(const Name& a, const Name& b);
 
+    friend std::ostream& operator<<(std::ostream& os, const Name& name);
+
 private:
     uint64_t _hi;
     uint64_t _low;
