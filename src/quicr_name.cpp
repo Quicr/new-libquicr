@@ -236,11 +236,7 @@ Name& Name::operator=(Name&& other)
 
 bool operator==(const Name& a, const Name& b)
 {
-    std::cout << a._hi << std::endl;
-    std::cout << b._hi << std::endl;
-    std::cout << a._low << std::endl;
-    std::cout << b._low << std::endl;
-    return (a._hi == b._hi) && (a._low == b._low);
+    return std::tie(a._hi, a._low) == std::tie(b._hi, b._low);
 }
 
 bool operator!=(const Name& a, const Name& b)
