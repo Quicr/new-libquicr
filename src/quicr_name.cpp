@@ -7,13 +7,29 @@
 #include <string>
 #include <tuple>
 
+#include <iostream>
+
 namespace quicr
 {
 Name::Name(uint64_t value) : _hi{0}, _low{value} {}
 
+// Note: This assumes string has 0x prefix!
 Name::Name(const std::string& hex_value)
 {
-
+    const auto size_of = sizeof(uint64_t);
+    if (hex_value.length() - 2 > size_of * 2)
+    {
+        std::string hi_bits = hex_value.substr(0, size_of + 2);
+        std::string low_bits = hex_value.substr(size_of, size_of);
+        
+        _hi = std::stoull(hi_bits, nullptr, 16);
+        _low = std::stoull("0x" + low_bits, nullptr, 16);
+    }
+    else
+    {
+        _hi = 0;
+        _low = std::stoull(hex_value, nullptr, 16);
+    }
 }
 
 Name::Name(uint8_t* data, size_t length)
@@ -220,7 +236,11 @@ Name& Name::operator=(Name&& other)
 
 bool operator==(const Name& a, const Name& b)
 {
-    return !((a._hi ^ b._hi) | (a._low ^ b._low));
+    std::cout << a._hi << std::endl;
+    std::cout << b._hi << std::endl;
+    std::cout << a._low << std::endl;
+    std::cout << b._low << std::endl;
+    return (a._hi == b._hi) && (a._low == b._low);
 }
 
 bool operator!=(const Name& a, const Name& b)
