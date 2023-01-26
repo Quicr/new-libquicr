@@ -20,6 +20,6 @@ public:
 
 private:
   Name _name;
-  uint16_t _sig_bits;
+  const uint16_t _sig_bits;
 };
 }

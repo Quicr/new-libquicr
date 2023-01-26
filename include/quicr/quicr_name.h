@@ -19,24 +19,34 @@ public:
   Name(Name&& other);
   ~Name() = default;
 
+  // Vector of bytes of the full integer.
   std::vector<uint8_t> data() const;
+
+  // Number of bytes, basically the size of data().
   size_t size() const;
+
+  // Number of bits set to true.
+  size_t bit_count() const;
+
+  // Outputs the full internal integer ain hex representation.
   std::string to_hex() const;
 
-  Name operator>>(uint16_t value);
-  Name operator<<(uint16_t value);
-  Name operator+(uint_type value);
+  Name operator>>(uint16_t value) const;
+  Name operator<<(uint16_t value) const;
+  Name operator+(uint_type value) const;
   void operator+=(uint_type value);
-  Name operator-(uint_type value);
+  Name operator-(uint_type value) const;
   void operator-=(uint_type value);
-  Name operator&(uint_type value);
+  Name operator&(uint_type value) const;
   void operator&=(uint_type value);
-  Name operator|(uint_type value);
+  Name operator|(uint_type value) const;
   void operator|=(uint_type value);
-  Name operator&(const Name& other);
+  Name operator&(const Name& other) const;
   void operator&=(const Name& other);
-  Name operator|(const Name& other);
+  Name operator|(const Name& other) const;
   void operator|=(const Name& other);
+  Name operator^(const Name& other) const;
+  void operator^=(const Name& other);
 
   Name& operator=(const Name& other);
   Name& operator=(Name&& other);

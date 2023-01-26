@@ -18,7 +18,6 @@ Name::Name(uint_type value)
 
 Name::Name(const std::string& hex_value)
 {
-
   std::string clean_hex = hex_value;
   auto found = clean_hex.find("0x");
   if (found != std::string::npos)
@@ -56,7 +55,6 @@ Name::Name(const uint8_t* data, size_t length)
 
 Name::Name(const std::vector<uint8_t>& data)
 {
-
   const size_t size_of = sizeof(Name::uint_type);
   auto midpoint = std::prev(data.end(), size_of);
 
@@ -65,8 +63,6 @@ Name::Name(const std::vector<uint8_t>& data)
 
   std::vector<uint8_t> low_bits{ midpoint, data.end() };
   std::memcpy(&_low, low_bits.data(), low_bits.size());
-
-  std::cout << to_hex() << std::endl;
 }
 
 Name::Name(const Name& other)
@@ -84,7 +80,6 @@ Name::Name(Name&& other)
 std::vector<uint8_t>
 Name::data() const
 {
-
   auto make_bytes = [](Name::uint_type v) {
     std::vector<uint8_t> result(sizeof(Name::uint_type));
     for (size_t i = 0; i < sizeof(Name::uint_type); ++i) {
@@ -141,24 +136,32 @@ split_bitset(const bitset_t& bits)
   return { a, b };
 }
 
-Name
-Name::operator>>(uint16_t value)
+size_t
+Name::bit_count() const
 {
-  auto bits = make_bitset(_low, _hi);
-  bits >>= value;
-  std::tie(_low, _hi) = split_bitset(bits);
-
-  return *this;
+  return make_bitset(_low, _hi).count();
 }
 
 Name
-Name::operator<<(uint16_t value)
+Name::operator>>(uint16_t value) const
+{
+  auto bits = make_bitset(_low, _hi);
+  bits >>= value;
+  Name name(*this);
+  std::tie(name._low, name._hi) = split_bitset(bits);
+
+  return name;
+}
+
+Name
+Name::operator<<(uint16_t value) const
 {
   auto bits = make_bitset(_low, _hi);
   bits <<= value;
-  std::tie(_low, _hi) = split_bitset(bits);
+  Name name(*this);
+  std::tie(name._low, name._hi) = split_bitset(bits);
 
-  return *this;
+  return name;
 }
 
 static bitset_t
@@ -180,7 +183,7 @@ add_bitset(const bitset_t& x, const bitset_t& y)
 }
 
 Name
-Name::operator+(uint_type value)
+Name::operator+(uint_type value) const
 {
   Name name(*this);
   name += value;
@@ -216,7 +219,7 @@ sub_bitset(const bitset_t& x, const bitset_t& y)
 }
 
 Name
-Name::operator-(uint_type value)
+Name::operator-(uint_type value) const
 {
   Name name(*this);
   name -= value;
@@ -234,7 +237,7 @@ Name::operator-=(uint_type value)
 }
 
 Name
-Name::operator&(uint_type value)
+Name::operator&(uint_type value) const
 {
   Name name(*this);
   name &= value;
@@ -248,7 +251,7 @@ Name::operator&=(uint_type value)
 }
 
 Name
-Name::operator|(uint_type value)
+Name::operator|(uint_type value) const
 {
   Name name(*this);
   name |= value;
@@ -262,7 +265,7 @@ Name::operator|=(uint_type value)
 }
 
 Name
-Name::operator&(const Name& other)
+Name::operator&(const Name& other) const
 {
   Name name = *this;
   name &= other;
@@ -277,7 +280,7 @@ Name::operator&=(const Name& other)
 }
 
 Name
-Name::operator|(const Name& other)
+Name::operator|(const Name& other) const
 {
   Name name = *this;
   name |= other;
@@ -289,6 +292,21 @@ Name::operator|=(const Name& other)
 {
   _hi |= other._hi;
   _low |= other._low;
+}
+
+Name
+Name::operator^(const Name& other) const
+{
+  Name name = *this;
+  name ^= other;
+  return name;
+}
+
+void
+Name::operator^=(const Name& other)
+{
+  _hi ^= other._hi;
+  _low ^= other._low;
 }
 
 Name&
