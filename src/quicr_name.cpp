@@ -136,12 +136,6 @@ split_bitset(const bitset_t& bits)
   return { a, b };
 }
 
-size_t
-Name::bit_count() const
-{
-  return make_bitset(_low, _hi).count();
-}
-
 Name
 Name::operator>>(uint16_t value) const
 {

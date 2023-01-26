@@ -84,6 +84,9 @@ TEST_CASE("quicr::Namespace Contains Names Test")
 
   quicr::Name invalid_name("0x11111111111111112222222222222300");
   CHECK_FALSE(ns.contains(invalid_name));
+
+  quicr::Name invalid_sized_name("0x111111111111222222222300");
+  CHECK_FALSE(ns.contains(invalid_sized_name));
 }
 
 TEST_CASE("quicr::Namespace Contains Namespaces Test")
