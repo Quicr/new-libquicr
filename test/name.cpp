@@ -92,16 +92,16 @@ TEST_CASE("quicr::Name Logical Arithmetic Tests")
 TEST_CASE("quicr::Namespace Contains Names Test")
 {
   HexFormatter<128, 64, 56, 8> formatter_128bit;
-  std::string mask = formatter_128bit.format(0x1111111111111111ull, 0x22222222222222ull, 0x00ull);
+  std::string mask = formatter_128bit.Format(0x1111111111111111ull, 0x22222222222222ull, 0x00ull);
   quicr::Namespace ns(mask, 120);
 
-  quicr::Name valid_name(formatter_128bit.format(0x1111111111111111ull, 0x22222222222222ull, 0xFFull));
+  quicr::Name valid_name(formatter_128bit.Format(0x1111111111111111ull, 0x22222222222222ull, 0xFFull));
   CHECK(ns.contains(valid_name));
 
-  quicr::Name another_valid_name(formatter_128bit.format(0x1111111111111111ull, 0x22222222222222ull, 0x11ull));
+  quicr::Name another_valid_name(formatter_128bit.Format(0x1111111111111111ull, 0x22222222222222ull, 0x11ull));
   CHECK(ns.contains(another_valid_name));
 
-  quicr::Name invalid_name(formatter_128bit.format(0x1111111111111111ull, 0x22222222222223ull, 0x00ull));
+  quicr::Name invalid_name(formatter_128bit.Format(0x1111111111111111ull, 0x22222222222223ull, 0x00ull));
   CHECK_FALSE(ns.contains(invalid_name));
 
   quicr::Name invalid_sized_name(HexFormatter<127, 64, 56, 7>::Format(0x1111111111111111ull, 0x22222222222222ull, 0x0ull));
