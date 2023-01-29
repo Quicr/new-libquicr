@@ -120,8 +120,3 @@ TEST_CASE("quicr::Namespace Contains Namespaces Test")
                                      104);
   CHECK_FALSE(ns.contains(invalid_namespace));
 }
-
-TEST_CASE("HexBuild Test")
-{
-  quicr::Name name;
-}
