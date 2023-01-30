@@ -140,10 +140,21 @@ split_bitset(const bitset_t& bits)
 Name
 Name::operator>>(uint16_t value) const
 {
-  auto bits = make_bitset(_low, _hi);
-  bits >>= value;
   Name name(*this);
-  std::tie(name._low, name._hi) = split_bitset(bits);
+
+  const auto size_of = sizeof(uint_type) * 8;
+  if (value < size_of)
+  {
+    auto temp = (name._hi & ~(~0x0ull << value)) << (max_uint_type_bit_size - value);
+    name._low = name._low >> value;
+    name._low |= temp;
+    name._hi = name._hi >> value;
+  }
+  else
+  {
+    name._low = name._hi >> (max_uint_type_bit_size - (max_uint_type_bit_size % value));
+    name._hi = 0;
+  }
 
   return name;
 }
@@ -151,10 +162,22 @@ Name::operator>>(uint16_t value) const
 Name
 Name::operator<<(uint16_t value) const
 {
-  auto bits = make_bitset(_low, _hi);
-  bits <<= value;
   Name name(*this);
-  std::tie(name._low, name._hi) = split_bitset(bits);
+
+  const auto size_of = sizeof(uint_type) * 8;
+  if (value < size_of)
+  {
+    auto mask = ~(~0x0ull << value) << (max_uint_type_bit_size - value);
+    auto temp = (name._low & mask) >> (max_uint_type_bit_size - value);
+    name._hi = name._hi << value;
+    name._hi |= temp;
+    name._low = name._low << value;
+  }
+  else
+  {
+    name._hi = name._low << (max_uint_type_bit_size - (max_uint_type_bit_size % value));
+    name._low = 0;
+  }
 
   return name;
 }
