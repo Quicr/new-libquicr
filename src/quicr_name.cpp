@@ -8,8 +8,7 @@
 #include <cstring>
 
 namespace quicr {
-static const size_t uint_type_bit_size = sizeof(Name::uint_type) * 8;
-static const size_t max_uint_type_bit_size = uint_type_bit_size * 2;
+static constexpr size_t uint_type_bit_size = sizeof(Name::uint_type) * 8;
 
 Name::Name()
   : _hi{ 0 }
@@ -124,14 +123,13 @@ Name::operator>>(uint16_t value) const
   const auto size_of = sizeof(uint_type) * 8;
   if (value < size_of)
   {
-    auto temp = (name._hi & ~(~0x0ull << value)) << (max_uint_type_bit_size - value);
     name._low = name._low >> value;
-    name._low |= temp;
+    name._low |= name._hi << (uint_type_bit_size - value);
     name._hi = name._hi >> value;
   }
   else
   {
-    name._low = name._hi >> (max_uint_type_bit_size - (max_uint_type_bit_size % value));
+    name._low = name._hi >> (value - uint_type_bit_size);
     name._hi = 0;
   }
 
@@ -146,15 +144,13 @@ Name::operator<<(uint16_t value) const
   const auto size_of = sizeof(uint_type) * 8;
   if (value < size_of)
   {
-    auto mask = ~(~0x0ull << value) << (max_uint_type_bit_size - value);
-    auto temp = (name._low & mask) >> (max_uint_type_bit_size - value);
     name._hi = name._hi << value;
-    name._hi |= temp;
+    name._hi |= name._low >> (uint_type_bit_size - value);
     name._low = name._low << value;
   }
   else
   {
-    name._hi = name._low << (max_uint_type_bit_size - (max_uint_type_bit_size % value));
+    name._hi = name._low << (value - uint_type_bit_size);
     name._low = 0;
   }
 
