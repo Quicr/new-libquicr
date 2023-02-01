@@ -6,63 +6,46 @@
 #include <vector>
 #include <cassert>
 
-namespace quicr::messages {
+namespace quicr {
+enum class uintVar_t : uint64_t {};
 
-// TODO: This is a very crude implementation. Optimize???
-struct MessageBuffer
+namespace messages {
+class MessageBuffer
 {
+public:
+  MessageBuffer() = default;
+  MessageBuffer(const std::vector<uint8_t>& buffer);
+  MessageBuffer(std::vector<uint8_t>&& buffer);
 
-  void push_back(const std::vector<uint8_t>& data)
-  {
-    buffer.insert(buffer.end(), data.begin(), data.end());
-  }
+  void push_back(uint8_t t);
+  void push_back(const std::vector<uint8_t>& data);
+  void pop_back();
+  void pop_back(uint16_t len);
+  uint8_t back() const { return _buffer.back(); }
+  std::vector<uint8_t> back(uint16_t len);
+  constexpr bool empty() const { return _buffer.empty(); }
 
-  void push_back(uint8_t t) { buffer.push_back(t); };
+  std::vector<uint8_t>&& move_buffer() { return std::move(_buffer); }
 
-  void pop_back() { buffer.pop_back(); };
+  std::string to_hex() const;
+  
+  friend void operator<<(MessageBuffer& msg, uint8_t val);
+  friend bool operator>>(MessageBuffer& msg, uint8_t& val);
 
-  uint8_t back() const { return buffer.back(); };
+  friend void operator<<(MessageBuffer& msg, const uint64_t& val);
+  friend bool operator>>(MessageBuffer& msg, uint64_t& val);
 
-  std::vector<uint8_t> back(uint16_t len)
-  {
-    assert(len <= buffer.size());
-    auto vec = std::vector<uint8_t>(len);
-    auto delta = buffer.size() - len;
-    std::copy(buffer.begin() + delta, buffer.end(), vec.begin());
-    buffer.erase(buffer.begin() + delta, buffer.end());
-    return vec;
-  }
+  friend void operator<<(MessageBuffer& msg, const uintVar_t& val);
+  friend bool operator>>(MessageBuffer& msg, uintVar_t& val);
 
-  std::string to_hex();
+  friend void operator<<(MessageBuffer& msg, const std::vector<uint8_t>& val);
+  friend bool operator>>(MessageBuffer& msg, std::vector<uint8_t>& val);
 
-  std::vector<uint8_t> buffer;
+private:
+  std::vector<uint8_t> _buffer;
 };
 
-// Operations for encoding types
-
-void
-operator<<(MessageBuffer& msg, const uint64_t& val);
-void
-operator<<(MessageBuffer& msg, uint8_t val);
-void
-operator<<(MessageBuffer& msg, const std::vector<uint8_t>& val);
-
-bool
-operator>>(MessageBuffer& msg, uint64_t& val);
-bool
-operator>>(MessageBuffer& msg, uint8_t& val);
-bool
-operator>>(MessageBuffer& msg, std::vector<uint8_t>& val);
-
-enum class uintVar_t : uint64_t
-{
-};
-
-void
-operator<<(MessageBuffer& msg, const uintVar_t& val);
-bool
-operator>>(MessageBuffer& msg, uintVar_t& val);
-uintVar_t toVarInt(uint64_t);
-uint64_t fromVarInt(uintVar_t);
-
+uintVar_t to_varint(uint64_t);
+uint64_t from_varint(uintVar_t);
+}
 }

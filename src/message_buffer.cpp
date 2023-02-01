@@ -4,21 +4,63 @@
 #include <sstream>
 
 namespace quicr::messages {
+MessageBuffer::MessageBuffer(const std::vector<uint8_t>& buffer)
+  : _buffer{buffer}
+{
+}
+MessageBuffer::MessageBuffer(std::vector<uint8_t>&& buffer)
+  : _buffer{std::move(buffer)}
+{
+}
+  
+void MessageBuffer::push_back(const std::vector<uint8_t>& data)
+{
+  _buffer.insert(_buffer.end(), data.begin(), data.end());
+}
+
+void MessageBuffer::push_back(uint8_t t) { _buffer.push_back(t); };
+
+void MessageBuffer::pop_back() { _buffer.pop_back(); };
+
+void MessageBuffer::pop_back(uint16_t len)
+{
+  const auto delta = _buffer.size() - len;
+  _buffer.erase(_buffer.begin() + delta, _buffer.end());
+};
+
+std::vector<uint8_t> MessageBuffer::back(uint16_t len)
+{
+  assert(len <= _buffer.size());
+  auto vec = std::vector<uint8_t>(len);
+  const auto delta = _buffer.size() - len;
+  std::copy(_buffer.begin() + delta, _buffer.end(), vec.begin());
+  return vec;
+}
 
 std::string
-MessageBuffer::to_hex()
+MessageBuffer::to_hex() const
 {
   std::stringstream hex(std::ios_base::out);
   hex.flags(std::ios::hex);
-  for (const auto& byte : buffer) {
+  for (const auto& byte : _buffer) {
     hex << std::setw(2) << std::setfill('0') << int(byte);
   }
   return hex.str();
 }
 
-///
-/// Atomic Types
-///
+void
+operator<<(MessageBuffer& msg, const uint8_t val)
+{
+  msg.push_back(val);
+}
+
+bool
+operator>>(MessageBuffer& msg, uint8_t& val)
+{
+  val = msg.back();
+  msg.pop_back();
+  return true;
+}
 
 void
 operator<<(MessageBuffer& msg, const uint64_t& val)
@@ -34,19 +76,6 @@ operator<<(MessageBuffer& msg, const uint64_t& val)
   msg.push_back(uint8_t((val >> 40) & 0xFF));
   msg.push_back(uint8_t((val >> 48) & 0xFF));
   msg.push_back(uint8_t((val >> 56) & 0xFF));
-}
-
-void
-operator<<(MessageBuffer& msg, const uint8_t val)
-{
-  msg.push_back(val);
-}
-
-void
-operator<<(MessageBuffer& msg, const std::vector<uint8_t>& val)
-{
-  msg.push_back(val);
-  msg << toVarInt(val.size());
 }
 
 bool
@@ -72,12 +101,11 @@ operator>>(MessageBuffer& msg, uint64_t& val)
   return ok;
 }
 
-bool
-operator>>(MessageBuffer& msg, uint8_t& val)
+void
+operator<<(MessageBuffer& msg, const std::vector<uint8_t>& val)
 {
-  val = msg.back();
-  msg.pop_back();
-  return true;
+  msg.push_back(val);
+  msg << to_varint(val.size());
 }
 
 bool
@@ -85,23 +113,23 @@ operator>>(MessageBuffer& msg, std::vector<uint8_t>& val)
 {
   uintVar_t vecSize{0};
   msg >> vecSize;
-  if (fromVarInt(vecSize) == 0) {
+
+  size_t len = from_varint(vecSize);
+  if (len == 0) {
     return false;
   }
 
-  val.resize(fromVarInt(vecSize));
-  val = msg.back(fromVarInt(vecSize));
+  val.resize(len);
+  val = msg.back(len);
+  msg.pop_back(len);
+  
   return true;
 }
-
-///
-/// Varints
-///
 
 void
 operator<<(MessageBuffer& msg, const uintVar_t& v)
 {
-  uint64_t val = fromVarInt(v);
+  uint64_t val = from_varint(v);
 
   assert(val < ((uint64_t)1 << 61));
 
@@ -145,7 +173,7 @@ operator>>(MessageBuffer& msg, uintVar_t& v)
   if ((first & (0x80)) == 0) {
     ok &= msg >> byte[0];
     uint8_t val = ((byte[0] & 0x7F) << 0);
-    v = toVarInt(val);
+    v = to_varint(val);
     return ok;
   }
 
@@ -153,7 +181,7 @@ operator>>(MessageBuffer& msg, uintVar_t& v)
     ok &= msg >> byte[1];
     ok &= msg >> byte[0];
     uint16_t val = (((uint16_t)byte[1] & 0x3F) << 8) + ((uint16_t)byte[0] << 0);
-    v = toVarInt(val);
+    v = to_varint(val);
     return ok;
   }
 
@@ -165,7 +193,7 @@ operator>>(MessageBuffer& msg, uintVar_t& v)
     uint32_t val = ((uint32_t)(byte[3] & 0x1F) << 24) +
                    ((uint32_t)byte[2] << 16) + ((uint32_t)byte[1] << 8) +
                    ((uint32_t)byte[0] << 0);
-    v = toVarInt(val);
+    v = to_varint(val);
     return ok;
   }
 
@@ -185,19 +213,19 @@ operator>>(MessageBuffer& msg, uintVar_t& v)
                  ((uint64_t)(byte[2]) << 16) +
                  ((uint64_t)(byte[1]) << 8) +
                  ((uint64_t)(byte[0]) << 0);
-  v = toVarInt(val);
+  v = to_varint(val);
   return ok;
 }
 
 uintVar_t
-toVarInt(uint64_t v)
+to_varint(uint64_t v)
 {
   assert(v < ((uint64_t)0x1 << 61));
   return static_cast<uintVar_t>(v);
 }
 
 uint64_t
-fromVarInt(uintVar_t v)
+from_varint(uintVar_t v)
 {
   return static_cast<uint64_t>(v);
 }
