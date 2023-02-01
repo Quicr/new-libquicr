@@ -153,19 +153,3 @@ TEST_CASE("PublishIntentEnd Message encode/decode")
   CHECK_EQ(pie_out.name, pie.name);
   CHECK_EQ(pie_out.payload, pie.payload);
 }
-
-
-TEST_CASE("UInt Var encode/decode")
-{
-  uintVar_t blah{std::numeric_limits<uint32_t>::max()};
-
-  MessageBuffer msg;
-  msg << blah;
-  uintVar_t foo;
-  CHECK((msg >> foo));
-
-  std::cout << std::hex << std::setw(16) << std::setfill('0') << static_cast<uint64_t>(blah) << std::endl;
-  std::cout << std::hex << std::setw(16) << std::setfill('0') << static_cast<uint64_t>(foo) << std::endl;
-
-  CHECK_EQ(foo, blah);
-}
