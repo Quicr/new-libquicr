@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <iomanip>
 #include <sstream>
+#include <vector>
 
 namespace quicr {
 /**
@@ -53,12 +54,20 @@ public:
   static inline std::string Encode(UInt_ts... values)
   {
     static_assert(Size == (N + ...), "Total bits cannot exceed specified size");
-    static_assert(is_valid_uint<UInt_ts...>::value,
-                  "Arguments must all be unsigned integers");
     static_assert(sizeof...(N) == sizeof...(UInt_ts),
                   "Number of values should match distribution of bits");
 
-    std::array<uint8_t, sizeof...(N)> distribution{ N... };
+    std::vector<uint8_t> distribution;
+    (distribution.push_back(N), ...);
+
+    return Encode(distribution, std::forward<UInt_ts>(values)...);
+  }
+  
+  template<typename... UInt_ts>
+  static inline std::string Encode(const std::vector<uint8_t>& distribution, UInt_ts... values)
+  {
+    static_assert(is_valid_uint<UInt_ts...>::value,
+                  "Arguments must all be unsigned integers");
 
     std::stringstream ss;
     ss << std::hex << "0x";
@@ -66,10 +75,10 @@ public:
     size_t num_args = 0;
     auto get_hex = [&](uint64_t value, size_t i) {
       std::stringstream ss;
-      ss << std::hex << std::setw(distribution[i] / 4) << std::setfill('0');
-      ss << (value & (distribution[i] >= sizeof(value) * 8
+      ss << std::hex << std::setw(distribution.at(i) / 4) << std::setfill('0');
+      ss << (value & (distribution.at(i) >= sizeof(value) * 8
                         ? ~0x0ull
-                        : ~(~0ull << distribution[i])));
+                        : ~(~0ull << distribution.at(i))));
       return ss.str();
     };
     (ss << ... << get_hex(values, num_args++));
@@ -94,7 +103,20 @@ public:
     static_assert(Size == (N + ...), "Total bits cannot exceed specified size");
     static_assert(is_valid_uint<Uint_t>::value, "Type must be unsigned integer");
 
-    std::array<uint8_t, sizeof...(N)> distribution{ N... };
+    std::vector<uint8_t> distribution;
+    (distribution.push_back(N), ...);
+
+    auto result = Decode(distribution, hex);
+    std::array<Uint_t, sizeof...(N)> out;
+    std::copy_n(result.begin(), sizeof...(N), out.begin());
+
+    return out;
+  }
+  
+  template<typename Uint_t = uint64_t>
+  static inline std::vector<Uint_t> Decode(const std::vector<uint8_t>& distribution, const std::string& hex)
+  {
+    static_assert(is_valid_uint<Uint_t>::value, "Type must be unsigned integer");
 
     std::string clean_hex = hex;
     auto found = clean_hex.find("0x");
@@ -107,8 +129,8 @@ public:
                                std::to_string(Size / 8) + " bytes)");
 
     int i = 0;
-    std::array<Uint_t, sizeof...(N)> result;
-    for (const uint16_t& n : distribution) {
+    std::vector<Uint_t> result(distribution.size());
+    for (const uint8_t& n : distribution) {
       size_t midpoint = (n / 4);
       std::string bytes = clean_hex.substr(0, midpoint);
       clean_hex.erase(0, midpoint);
