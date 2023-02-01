@@ -28,24 +28,24 @@ public:
   std::vector<uint8_t>&& move_buffer() { return std::move(_buffer); }
 
   std::string to_hex() const;
-  
-  friend void operator<<(MessageBuffer& msg, uint8_t val);
-  friend bool operator>>(MessageBuffer& msg, uint8_t& val);
-
-  friend void operator<<(MessageBuffer& msg, const uint64_t& val);
-  friend bool operator>>(MessageBuffer& msg, uint64_t& val);
-
-  friend void operator<<(MessageBuffer& msg, const uintVar_t& val);
-  friend bool operator>>(MessageBuffer& msg, uintVar_t& val);
-
-  friend void operator<<(MessageBuffer& msg, const std::vector<uint8_t>& val);
-  friend bool operator>>(MessageBuffer& msg, std::vector<uint8_t>& val);
 
 private:
   std::vector<uint8_t> _buffer;
 };
+  
+void operator<<(MessageBuffer& msg, uint8_t val);
+bool operator>>(MessageBuffer& msg, uint8_t& val);
+
+void operator<<(MessageBuffer& msg, const uint64_t& val);
+bool operator>>(MessageBuffer& msg, uint64_t& val);
+
+void operator<<(MessageBuffer& msg, const uintVar_t& val);
+bool operator>>(MessageBuffer& msg, uintVar_t& val);
+
+void operator<<(MessageBuffer& msg, const std::vector<uint8_t>& val);
+bool operator>>(MessageBuffer& msg, std::vector<uint8_t>& val);
+}
 
 uintVar_t to_varint(uint64_t);
 uint64_t from_varint(uintVar_t);
-}
 }

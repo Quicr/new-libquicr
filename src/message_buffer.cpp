@@ -3,7 +3,21 @@
 #include <iomanip>
 #include <sstream>
 
-namespace quicr::messages {
+namespace quicr {
+uintVar_t
+to_varint(uint64_t v)
+{
+  assert(v < ((uint64_t)0x1 << 61));
+  return static_cast<uintVar_t>(v);
+}
+
+uint64_t
+from_varint(uintVar_t v)
+{
+  return static_cast<uint64_t>(v);
+}
+
+namespace messages {
 MessageBuffer::MessageBuffer(const std::vector<uint8_t>& buffer)
   : _buffer{buffer}
 {
@@ -217,16 +231,5 @@ operator>>(MessageBuffer& msg, uintVar_t& v)
   return ok;
 }
 
-uintVar_t
-to_varint(uint64_t v)
-{
-  assert(v < ((uint64_t)0x1 << 61));
-  return static_cast<uintVar_t>(v);
-}
-
-uint64_t
-from_varint(uintVar_t v)
-{
-  return static_cast<uint64_t>(v);
-}
-}
+} // namespace quicr::messages
+} // namespace quicr
