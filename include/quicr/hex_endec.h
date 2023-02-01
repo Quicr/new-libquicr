@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <sstream>
 
+namespace quicr {
 /**
  * @brief Encodes/Decodes a hex string from/into a list of unsigned integers
  *        values.
@@ -117,3 +118,4 @@ public:
     return result;
   }
 };
+}

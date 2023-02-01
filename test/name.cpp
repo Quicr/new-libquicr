@@ -91,7 +91,7 @@ TEST_CASE("quicr::Name Logical Arithmetic Tests")
 
 TEST_CASE("quicr::Namespace Contains Names Test")
 {
-  HexEndec<128, 64, 56, 8> formatter_128bit;
+  quicr::HexEndec<128, 64, 56, 8> formatter_128bit;
   std::string mask = formatter_128bit.Encode(
     0x1111111111111111ull, 0x22222222222222ull, 0x00ull);
   quicr::Namespace ns(mask, 120);
@@ -108,7 +108,7 @@ TEST_CASE("quicr::Namespace Contains Names Test")
     0x1111111111111111ull, 0x22222222222223ull, 0x00ull));
   CHECK_FALSE(ns.contains(invalid_name));
 
-  quicr::Name invalid_sized_name(HexEndec<127, 64, 56, 7>::Encode(
+  quicr::Name invalid_sized_name(quicr::HexEndec<127, 64, 56, 7>::Encode(
     0x1111111111111111ull, 0x22222222222222ull, 0x0ull));
   CHECK_FALSE(ns.contains(invalid_sized_name));
 }
