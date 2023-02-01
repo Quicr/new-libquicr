@@ -2,8 +2,6 @@
 #include <memory>
 
 #include "encode.h"
-#include <iostream>
-#include <iomanip>
 
 using namespace quicr;
 using namespace quicr::messages;
