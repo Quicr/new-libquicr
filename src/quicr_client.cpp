@@ -133,7 +133,7 @@ QuicRClient::subscribe(std::shared_ptr<SubscriberDelegate> subscriber_delegate,
                         transport_context_id,
                         media_stream_id,
                         transaction_id };
-    transport->enqueue(transport_context_id, media_stream_id, msg.move_buffer());
+    transport->enqueue(transport_context_id, media_stream_id, msg.get());
     return;
   } else {
     auto& ctx = subscribe_state[quicr_namespace];
@@ -143,7 +143,7 @@ QuicRClient::subscribe(std::shared_ptr<SubscriberDelegate> subscriber_delegate,
     } else if (ctx.state == SubscribeContext::State::Pending) {
       // todo - resend or wait or may be take in timeout in the api
     }
-    transport->enqueue(transport_context_id, media_stream_id, msg.move_buffer());
+    transport->enqueue(transport_context_id, media_stream_id, msg.get());
   }
 }
 
@@ -193,7 +193,7 @@ QuicRClient::publishNamedObject(const quicr::Name& quicr_name,
   msg << datagram;
 
   transport->enqueue(
-    transport_context_id, context.media_stream_id, msg.move_buffer());
+    transport_context_id, context.media_stream_id, msg.get());
 }
 
 void

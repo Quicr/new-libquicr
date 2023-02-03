@@ -7,27 +7,47 @@
 #include <cassert>
 
 namespace quicr {
+/**
+ * @brief Variable length integer
+ */
 enum class uintVar_t : uint64_t {};
 
+uintVar_t to_varint(uint64_t);
+uint64_t from_varint(uintVar_t);
+
 namespace messages {
+/**
+ * @brief Defines a buffer that can be sent over transport. Cannot be copied.
+ */
 class MessageBuffer
 {
 public:
   MessageBuffer() = default;
+  MessageBuffer(MessageBuffer&& other);
   MessageBuffer(const std::vector<uint8_t>& buffer);
   MessageBuffer(std::vector<uint8_t>&& buffer);
+  MessageBuffer(const MessageBuffer& other) = delete;
+  ~MessageBuffer() = default;
 
-  void push_back(uint8_t t);
-  void push_back(const std::vector<uint8_t>& data);
-  void pop_back();
-  void pop_back(uint16_t len);
-  uint8_t back() const { return _buffer.back(); }
-  std::vector<uint8_t> back(uint16_t len);
   constexpr bool empty() const { return _buffer.empty(); }
 
-  std::vector<uint8_t>&& move_buffer() { return std::move(_buffer); }
+  void push_back(uint8_t t) { _buffer.push_back(t); }
+  void pop_back() { _buffer.pop_back(); }
+  uint8_t back() const { return _buffer.back(); }
+
+  void push_back(const std::vector<uint8_t>& data);
+  void pop_back(uint16_t len);
+  std::vector<uint8_t> back(uint16_t len);
+
+  /**
+   * @brief Returns an rvalue reference to the buffer (moving it).
+   */
+  std::vector<uint8_t>&& get() { return std::move(_buffer); }
 
   std::string to_hex() const;
+
+  void operator=(const MessageBuffer& other) = delete;
+  void operator=(MessageBuffer&& other);
 
 private:
   std::vector<uint8_t> _buffer;
@@ -45,7 +65,4 @@ bool operator>>(MessageBuffer& msg, uintVar_t& val);
 void operator<<(MessageBuffer& msg, const std::vector<uint8_t>& val);
 bool operator>>(MessageBuffer& msg, std::vector<uint8_t>& val);
 }
-
-uintVar_t to_varint(uint64_t);
-uint64_t from_varint(uintVar_t);
 }

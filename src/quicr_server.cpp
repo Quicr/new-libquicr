@@ -133,7 +133,7 @@ QuicRServer::sendNamedObject(const uint64_t& subscriber_id,
 
   transport->enqueue(context.transport_context_id,
                      context.media_stream_id,
-                     msg.move_buffer());
+                     msg.get());
 }
 
 void

@@ -18,10 +18,16 @@ from_varint(uintVar_t v)
 }
 
 namespace messages {
+MessageBuffer::MessageBuffer(MessageBuffer&& other)
+  : _buffer{std::move(other._buffer)}
+{
+}
+
 MessageBuffer::MessageBuffer(const std::vector<uint8_t>& buffer)
   : _buffer{buffer}
 {
 }
+
 MessageBuffer::MessageBuffer(std::vector<uint8_t>&& buffer)
   : _buffer{std::move(buffer)}
 {
@@ -32,10 +38,6 @@ void MessageBuffer::push_back(const std::vector<uint8_t>& data)
   _buffer.insert(_buffer.end(), data.begin(), data.end());
 }
 
-void MessageBuffer::push_back(uint8_t t) { _buffer.push_back(t); };
-
-void MessageBuffer::pop_back() { _buffer.pop_back(); };
-
 void MessageBuffer::pop_back(uint16_t len)
 {
   const auto delta = _buffer.size() - len;
@@ -45,21 +47,28 @@ void MessageBuffer::pop_back(uint16_t len)
 std::vector<uint8_t> MessageBuffer::back(uint16_t len)
 {
   assert(len <= _buffer.size());
-  auto vec = std::vector<uint8_t>(len);
+
+  std::vector<uint8_t> vec(len);
   const auto delta = _buffer.size() - len;
   std::copy(_buffer.begin() + delta, _buffer.end(), vec.begin());
+
   return vec;
 }
 
 std::string
 MessageBuffer::to_hex() const
 {
-  std::stringstream hex(std::ios_base::out);
-  hex.flags(std::ios::hex);
+  std::ostringstream hex;
+  hex << std::hex;
   for (const auto& byte : _buffer) {
     hex << std::setw(2) << std::setfill('0') << int(byte);
   }
   return hex.str();
+}
+
+void MessageBuffer::operator=(MessageBuffer&& other)
+{
+  _buffer = std::move(other._buffer);
 }
 
 void
