@@ -171,12 +171,8 @@ Name::operator+=(uint_type value)
   if (_low + value < _low)
   {
     ++_hi;
-    _low += value;
   }
-  else
-  {
-    _low += value;
-  }
+  _low += value;
 }
 
 Name
@@ -193,12 +189,8 @@ Name::operator-=(uint_type value)
   if (_low - value > _low)
   {
     --_hi;
-    _low -= value;
   }
-  else
-  {
-    _low -= value;
-  }
+  _low -= value;
 }
 
 Name Name::operator++()
