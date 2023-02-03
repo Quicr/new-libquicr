@@ -49,6 +49,20 @@ TEST_CASE("quicr::Name Bit Shifting Tests")
   CHECK_EQ((unshifted_64bit << 72), shifted_72bit);
   CHECK_EQ((shifted_64bit << 8), shifted_72bit);
   }
+
+  {
+    const quicr::Name unshifted_bits = quicr::Name("0x00000000000000000000000000000001");
+    quicr::Name bits = unshifted_bits;
+    for (int i = 0; i < 64; ++i)
+      bits <<= 1;
+
+    CHECK_EQ(bits, quicr::Name("0x00000000000000010000000000000000"));
+
+    for (int i = 0; i < 64; ++i)
+      bits >>= 1;
+
+    CHECK_EQ(bits, unshifted_bits);
+  }
 }
 
 TEST_CASE("quicr::Name Arithmetic Tests")

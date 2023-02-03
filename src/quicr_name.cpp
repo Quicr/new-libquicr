@@ -119,42 +119,60 @@ Name
 Name::operator>>(uint16_t value) const
 {
   Name name(*this);
+  name >>= value;
+  return name;
+}
+
+Name
+Name::operator>>=(uint16_t value)
+{
+  if (value == 0)
+    return *this;
 
   const auto size_of = sizeof(uint_type) * 8;
   if (value < size_of)
   {
-    name._low = name._low >> value;
-    name._low |= name._hi << (uint_type_bit_size - value);
-    name._hi = name._hi >> value;
+    _low = _low >> value;
+    _low |= _hi << (uint_type_bit_size - value);
+    _hi = _hi >> value;
   }
   else
   {
-    name._low = name._hi >> (value - uint_type_bit_size);
-    name._hi = 0;
+    _low = _hi >> (value - uint_type_bit_size);
+    _hi = 0;
   }
 
-  return name;
+  return *this;
 }
 
 Name
 Name::operator<<(uint16_t value) const
 {
   Name name(*this);
+  name <<= value;
+  return name;
+}
+
+Name
+Name::operator<<=(uint16_t value)
+{
+  if (value == 0)
+    return *this;
 
   const auto size_of = sizeof(uint_type) * 8;
   if (value < size_of)
   {
-    name._hi = name._hi << value;
-    name._hi |= name._low >> (uint_type_bit_size - value);
-    name._low = name._low << value;
+    _hi = _hi << value;
+    _hi |= _low >> (uint_type_bit_size - value);
+    _low = _low << value;
   }
   else
   {
-    name._hi = name._low << (value - uint_type_bit_size);
-    name._low = 0;
+    _hi = _low << (value - uint_type_bit_size);
+    _low = 0;
   }
 
-  return name;
+  return *this;
 }
 
 Name
