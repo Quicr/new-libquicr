@@ -138,7 +138,7 @@ public:
 
     auto result = Decode(distribution, quicr::Name{hex});
     std::array<Uint_t, sizeof...(N)> out;
-    std::copy_n(result.begin(), sizeof...(N), out.begin());
+    std::copy_n(std::make_move_iterator(result.begin()), sizeof...(N), out.begin());
 
     return out;
   }
@@ -155,7 +155,7 @@ public:
 
     auto result = Decode(distribution, name);
     std::array<Uint_t, sizeof...(N)> out;
-    std::copy_n(result.begin(), sizeof...(N), out.begin());
+    std::copy_n(std::make_move_iterator(result.begin()), sizeof...(N), out.begin());
 
     return out;
   }
