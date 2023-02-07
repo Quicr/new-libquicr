@@ -281,8 +281,9 @@ operator>>(MessageBuffer& buffer, PublishIntentEnd& msg)
 void
 operator<<(messages::MessageBuffer& msg, const quicr::Name& val)
 {
-  for (int i = (sizeof(quicr::Name::uint_type) * 2) - 1; i >= 0; --i)
-    msg << val[i];
+  constexpr uint8_t size = sizeof(quicr::Name::uint_type) * 2;
+  for (size_t i = 0; i < size; ++i)
+    msg << val[size - 1 - i];
 }
 
 bool
