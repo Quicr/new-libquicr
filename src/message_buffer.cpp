@@ -71,10 +71,11 @@ void MessageBuffer::operator=(MessageBuffer&& other)
   _buffer = std::move(other._buffer);
 }
 
-void
+MessageBuffer&
 operator<<(MessageBuffer& msg, const uint8_t val)
 {
   msg.push_back(val);
+  return msg;
 }
 
 bool
@@ -85,7 +86,7 @@ operator>>(MessageBuffer& msg, uint8_t& val)
   return true;
 }
 
-void
+MessageBuffer&
 operator<<(MessageBuffer& msg, const uint64_t& val)
 {
   // TODO - std::copy version for little endian machines optimization
@@ -99,6 +100,8 @@ operator<<(MessageBuffer& msg, const uint64_t& val)
   msg.push_back(uint8_t((val >> 40) & 0xFF));
   msg.push_back(uint8_t((val >> 48) & 0xFF));
   msg.push_back(uint8_t((val >> 56) & 0xFF));
+
+  return msg;
 }
 
 bool
@@ -124,11 +127,12 @@ operator>>(MessageBuffer& msg, uint64_t& val)
   return ok;
 }
 
-void
+MessageBuffer&
 operator<<(MessageBuffer& msg, const std::vector<uint8_t>& val)
 {
   msg.push_back(val);
   msg << to_varint(val.size());
+  return msg;
 }
 
 bool
@@ -149,7 +153,7 @@ operator>>(MessageBuffer& msg, std::vector<uint8_t>& val)
   return true;
 }
 
-void
+MessageBuffer&
 operator<<(MessageBuffer& msg, const uintVar_t& v)
 {
   uint64_t val = from_varint(v);
@@ -158,13 +162,13 @@ operator<<(MessageBuffer& msg, const uintVar_t& v)
 
   if (val <= ((uint64_t)1 << 7)) {
     msg.push_back(uint8_t(((val >> 0) & 0x7F)) | 0x00);
-    return;
+    return msg;
   }
 
   if (val <= ((uint64_t)1 << 14)) {
     msg.push_back(uint8_t((val >> 0) & 0xFF));
     msg.push_back(uint8_t(((val >> 8) & 0x3F) | 0x80));
-    return;
+    return msg;
   }
 
   if (val <= ((uint64_t)1 << 29)) {
@@ -172,7 +176,7 @@ operator<<(MessageBuffer& msg, const uintVar_t& v)
     msg.push_back(uint8_t((val >> 8) & 0xFF));
     msg.push_back(uint8_t((val >> 16) & 0xFF));
     msg.push_back(uint8_t(((val >> 24) & 0x1F) | 0x80 | 0x40));
-    return;
+    return msg;
   }
 
   msg.push_back(uint8_t((val >> 0) & 0xFF));
@@ -183,6 +187,8 @@ operator<<(MessageBuffer& msg, const uintVar_t& v)
   msg.push_back(uint8_t((val >> 40) & 0xFF));
   msg.push_back(uint8_t((val >> 48) & 0xFF));
   msg.push_back(uint8_t(((val >> 56) & 0x0F) | 0x80 | 0x40 | 0x20));
+
+  return msg;
 }
 
 bool
