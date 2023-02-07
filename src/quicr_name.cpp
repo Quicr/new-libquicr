@@ -340,14 +340,22 @@ Name::data() const
 void
 operator<<(messages::MessageBuffer& msg, const Name& val)
 {
-  msg << val.data();
+  for (uint8_t i = 0; i < sizeof(quicr::Name::uint_type) * 2; ++i)
+    msg << val.data()[i];
 }
 
 bool
 operator>>(messages::MessageBuffer& msg, Name& val)
 {
-  std::vector<uint8_t> bytes{};
-  msg >> bytes;
+  uint8_t size = sizeof(quicr::Name::uint_type) * 2;
+  std::vector<uint8_t> bytes(size);
+  for (int i = size - 1; i >= 0; --i)
+  {
+    if (!(msg >> bytes[i]))
+      return false;
+    msg.pop_back();
+  }
+
   val = Name{bytes};
 
   return true;
