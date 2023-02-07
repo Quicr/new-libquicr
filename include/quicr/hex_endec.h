@@ -86,8 +86,8 @@ public:
     static_assert((Size & (Size - 1)) == 0, "Size must be a power of 2");
     assert(distribution.size() == values.size() && "Number of values should match distribution of bits");
 
-    std::stringstream ss;
-    ss << std::hex << "0x";
+    std::ostringstream ss;
+    ss << std::hex << "0x" << std::setfill('0');
 
     std::bitset<Size> bits;
     uint8_t remaining_bits = Size;
@@ -102,12 +102,12 @@ public:
     if (Size > sizeof(uint64_t) * 8)
     {
       static const std::bitset<Size> bitset_divider(std::numeric_limits<uint64_t>::max());
-      ss << std::setw(Size/8) << std::setfill('0') << (bits >> (Size / 2) & bitset_divider).to_ullong();
-      ss << std::setw(Size/8) << std::setfill('0') << (bits & bitset_divider).to_ullong();
+      ss << std::setw(Size / 8) << (bits >> (Size / 2) & bitset_divider).to_ullong();
+      ss << std::setw(Size / 8) << (bits & bitset_divider).to_ullong();
     }
     else
     {
-      ss << std::setw(Size/4) << std::setfill('0') << bits.to_ullong();
+      ss << std::setw(Size / 4) << bits.to_ullong();
     }
 
     return ss.str();

@@ -75,7 +75,7 @@ Name::to_hex() const
 {
   constexpr uint8_t size_of = sizeof(uint_type) * 2;
 
-  std::stringstream stream;
+  std::ostringstream stream;
   stream << "0x" << std::hex << std::setfill('0');
   stream << std::setw(size_of) << _hi;
   stream << std::setw(size_of) << _low;
