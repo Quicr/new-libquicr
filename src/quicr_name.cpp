@@ -62,7 +62,6 @@ Name::Name(const uint8_t* data, size_t length)
 Name::Name(const std::vector<uint8_t>& data)
 {
   const size_t size_of = sizeof(uint_type);
-  _low = _hi = 0;
   std::memcpy(&_low, data.data()          , size_of);
   std::memcpy(&_hi , data.data() + size_of, size_of);
 }
