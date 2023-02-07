@@ -194,7 +194,7 @@ private:
   static inline void ValidateString(const std::string& hex)
   {
     std::string clean_hex = hex;
-    auto found = clean_hex.find("0x");
+    auto found = clean_hex.substr(0, 2).find("0x");
     if (found != std::string::npos)
       clean_hex.erase(found, 2);
 
