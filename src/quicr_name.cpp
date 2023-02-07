@@ -61,13 +61,10 @@ Name::Name(const uint8_t* data, size_t length)
 
 Name::Name(const std::vector<uint8_t>& data)
 {
-  auto midpoint = std::prev(data.end(), sizeof(uint_type));
-
-  std::vector<uint8_t> hi_bits{ data.begin(), midpoint };
-  std::memcpy(&_hi, hi_bits.data(), hi_bits.size());
-
-  std::vector<uint8_t> low_bits{ midpoint, data.end() };
-  std::memcpy(&_low, low_bits.data(), low_bits.size());
+  const size_t size_of = sizeof(uint_type);
+  _low = _hi = 0;
+  std::memcpy(&_low, data.data()          , size_of);
+  std::memcpy(&_hi , data.data() + size_of, size_of);
 }
 
 std::string
@@ -82,6 +79,15 @@ Name::to_hex() const
   
   return stream.str();
 }
+
+std::uint8_t Name::operator[](std::size_t index) const
+{
+  if (index >= sizeof(uint_type) * 2)
+    throw std::out_of_range("Cannot access index outside of max size of quicr::Name");
+
+  if (index < sizeof(uint_type)) return (_low >> (index * 8)) & 0xff;
+  return (_hi >> ((index - sizeof(uint_type)) * 8)) & 0xff;
+} 
 
 Name
 Name::operator>>(uint16_t value) const
@@ -321,43 +327,5 @@ operator<<(std::ostream& os, const Name& name)
 {
   os << name.to_hex();
   return os;
-}
-
-std::vector<uint8_t>
-Name::data() const
-{
-  std::vector<uint8_t> result(sizeof(uint_type) * 2);
-
-  for (uint8_t i = 0; i < sizeof(uint_type); ++i)
-  {
-    result[i] = static_cast<uint8_t>(( _hi >> 8 * i));
-    result[i + sizeof(uint_type)] = static_cast<uint8_t>((_low >> 8 * i));
-  }
-
-  return result;
-}
-
-void
-operator<<(messages::MessageBuffer& msg, const Name& val)
-{
-  auto&& data = val.data();
-  for (uint16_t i = 0; i < sizeof(quicr::Name::uint_type) * 2; ++i)
-    msg << std::move(data[i]);
-}
-
-bool
-operator>>(messages::MessageBuffer& msg, Name& val)
-{
-  uint8_t size = sizeof(quicr::Name::uint_type) * 2;
-  std::vector<uint8_t> bytes(size);
-  for (int i = size - 1; i >= 0; --i)
-  {
-    if (!(msg >> bytes[i]))
-      return false;
-  }
-
-  val = Name{bytes};
-
-  return true;
 }
 }

@@ -1,3 +1,4 @@
+#include <array>
 #include <string>
 #include <ctime>
 
@@ -275,6 +276,47 @@ operator>>(MessageBuffer& buffer, PublishIntentEnd& msg)
   buffer >> msg.payload;
 
   return buffer;
+}
+
+void
+operator<<(messages::MessageBuffer& msg, const quicr::Name& val)
+{
+  for (int i = (sizeof(quicr::Name::uint_type) * 2) - 1; i >= 0; --i)
+    msg << val[i];
+}
+
+bool
+operator>>(messages::MessageBuffer& msg, quicr::Name& val)
+{
+  constexpr uint8_t size = sizeof(quicr::Name::uint_type) * 2;
+  std::array<uint8_t, size> bytes;
+  for (int i = 0; i < size; ++i)
+    msg >> bytes[i];
+
+  val = Name{bytes.data(), size};
+
+  return true;
+}
+
+void
+operator<<(messages::MessageBuffer& msg, const quicr::Namespace& val)
+{
+  msg << val.length();
+  msg << val.name();
+}
+
+bool
+operator>>(messages::MessageBuffer& msg, quicr::Namespace& val)
+{
+  quicr::Name mask;
+  msg >> mask;
+  
+  uint8_t sig_bits;
+  msg >> sig_bits;
+
+  val = Namespace{mask, sig_bits};
+
+  return true;
 }
 
 }

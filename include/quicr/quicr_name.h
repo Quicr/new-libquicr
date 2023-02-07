@@ -26,6 +26,7 @@ public:
   ~Name() = default;
 
   std::string to_hex() const;
+  std::uint8_t operator[](std::size_t offset) const;
 
   Name operator>>(uint16_t value) const;
   Name operator>>=(uint16_t value);
@@ -60,12 +61,7 @@ public:
 
   friend std::ostream& operator<<(std::ostream& os, const Name& name);
 
-  friend void operator<<(messages::MessageBuffer& msg, const Name& ns);
-  friend bool operator>>(messages::MessageBuffer& msg, Name& ns);
-
 private:
-  std::vector<uint8_t> data() const;
-
   uint_type _hi;
   uint_type _low;
 };
