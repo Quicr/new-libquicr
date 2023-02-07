@@ -29,7 +29,7 @@ Name::Name(Name&& other)
 
 Name::Name(const std::string& hex_value)
 {
-  std::string clean_hex = std::move(hex_value);
+  std::string clean_hex = hex_value;
   auto found = clean_hex.substr(0, 2).find("0x");
   if (found != std::string::npos)
     clean_hex.erase(found, 2);
