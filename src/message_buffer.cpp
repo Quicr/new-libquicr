@@ -63,9 +63,9 @@ std::string
 MessageBuffer::to_hex() const
 {
   std::ostringstream hex;
-  hex << std::hex;
+  hex << std::hex << std::setfill('0');
   for (const auto& byte : _buffer) {
-    hex << std::setw(2) << std::setfill('0') << int(byte);
+    hex << std::setw(2) << int(byte);
   }
   return hex.str();
 }
