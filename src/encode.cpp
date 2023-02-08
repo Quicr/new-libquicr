@@ -278,12 +278,14 @@ operator>>(MessageBuffer& buffer, PublishIntentEnd& msg)
   return buffer;
 }
 
-void
+messages::MessageBuffer&
 operator<<(messages::MessageBuffer& msg, const quicr::Name& val)
 {
   constexpr uint8_t size = sizeof(quicr::Name::uint_type) * 2;
   for (size_t i = 0; i < size; ++i)
     msg << val[size - 1 - i];
+
+  return msg;
 }
 
 bool
@@ -299,23 +301,23 @@ operator>>(messages::MessageBuffer& msg, quicr::Name& val)
   return true;
 }
 
-void
+messages::MessageBuffer&
 operator<<(messages::MessageBuffer& msg, const quicr::Namespace& val)
 {
-  msg << val.length();
-  msg << val.name();
+  msg << val.length() << val.name();
+  return msg;
 }
 
 bool
 operator>>(messages::MessageBuffer& msg, quicr::Namespace& val)
 {
-  quicr::Name mask;
-  msg >> mask;
+  quicr::Name name_mask;
+  msg >> name_mask;
   
   uint8_t sig_bits;
   msg >> sig_bits;
 
-  val = Namespace{mask, sig_bits};
+  val = Namespace{name_mask, sig_bits};
 
   return true;
 }

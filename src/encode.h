@@ -194,10 +194,10 @@ MessageBuffer&
 operator>>(MessageBuffer& buffer, PublishIntentEnd& msg);
 
 
-void operator<<(messages::MessageBuffer& msg, const Name& ns);
+messages::MessageBuffer& operator<<(messages::MessageBuffer& msg, const Name& ns);
 bool operator>>(messages::MessageBuffer& msg, Name& ns);
 
-void operator<<(messages::MessageBuffer& msg, const Namespace& ns);
+messages::MessageBuffer& operator<<(messages::MessageBuffer& msg, const Namespace& ns);
 bool operator>>(messages::MessageBuffer& msg, Namespace& ns);
 
 }
