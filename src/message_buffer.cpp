@@ -40,13 +40,17 @@ void MessageBuffer::push_back(const std::vector<uint8_t>& data)
 
 void MessageBuffer::pop_back(uint16_t len)
 {
+  if (len > _buffer.size())
+    throw std::out_of_range("len cannot be longer than the size of the buffer");
+
   const auto delta = _buffer.size() - len;
   _buffer.erase(_buffer.begin() + delta, _buffer.end());
 };
 
 std::vector<uint8_t> MessageBuffer::back(uint16_t len)
 {
-  assert(len <= _buffer.size());
+  if (len > _buffer.size())
+    throw std::out_of_range("len cannot be longer than the size of the buffer");
 
   std::vector<uint8_t> vec(len);
   const auto delta = _buffer.size() - len;
