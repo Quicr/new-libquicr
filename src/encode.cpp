@@ -288,7 +288,7 @@ operator<<(messages::MessageBuffer& msg, const quicr::Name& val)
   return msg;
 }
 
-bool
+messages::MessageBuffer&
 operator>>(messages::MessageBuffer& msg, quicr::Name& val)
 {
   constexpr uint8_t size = sizeof(quicr::Name::uint_type) * 2;
@@ -298,7 +298,7 @@ operator>>(messages::MessageBuffer& msg, quicr::Name& val)
 
   val = Name{bytes.data(), size};
 
-  return true;
+  return msg;
 }
 
 messages::MessageBuffer&
@@ -308,7 +308,7 @@ operator<<(messages::MessageBuffer& msg, const quicr::Namespace& val)
   return msg;
 }
 
-bool
+messages::MessageBuffer&
 operator>>(messages::MessageBuffer& msg, quicr::Namespace& val)
 {
   quicr::Name name_mask;
@@ -319,7 +319,7 @@ operator>>(messages::MessageBuffer& msg, quicr::Namespace& val)
 
   val = Namespace{name_mask, sig_bits};
 
-  return true;
+  return msg;
 }
 
 }
