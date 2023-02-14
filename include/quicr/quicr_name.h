@@ -27,6 +27,7 @@ public:
 
   std::string to_hex() const;
   std::uint8_t operator[](std::size_t offset) const;
+  static constexpr size_t size() { return sizeof(uint_type) * 2; }
 
   Name operator>>(uint16_t value) const;
   Name operator>>=(uint16_t value);
