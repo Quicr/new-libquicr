@@ -46,5 +46,6 @@ jobs:
       uses: benchmark-action/github-action-benchmark@v1.15.0
       with:
         tool: 'googlecpp'
+        output-file-path: output.txt
 
 
