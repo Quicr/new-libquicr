@@ -1,5 +1,7 @@
 add_executable(quicr_benchmark
                 main.cpp
+                name.cpp
+                message_buffer.cpp
                 hex_endec.cpp)
 
 target_link_libraries(quicr_benchmark PRIVATE quicr benchmark::benchmark)
