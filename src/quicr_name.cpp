@@ -309,13 +309,17 @@ operator!=(const Name& a, const Name& b)
 bool
 operator>(const Name& a, const Name& b)
 {
-  return a._low > b._low || (a._low == b._low && a._hi > b._hi);
+  if (a._hi > b._hi) return true;
+  if (b._hi > a._hi) return false;
+  return a._low > b._low;
 }
 
 bool
 operator<(const Name& a, const Name& b)
 {
-  return a._low < b._low || (a._low == b._low && a._hi < b._hi);
+  if (a._hi < b._hi) return true;
+  if (b._hi < a._hi) return false;
+  return a._low < b._low;
 }
 
 std::ostream&
