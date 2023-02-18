@@ -434,7 +434,7 @@ QuicRClient::handle(messages::MessageBuffer&& msg)
     return;
   }
 
-  uint8_t msg_type = msg.back();
+  uint8_t msg_type = msg.front();
 
   switch (msg_type) {
     case static_cast<uint8_t>(messages::MessageType::SubscribeResponse): {

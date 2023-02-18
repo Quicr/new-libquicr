@@ -8,7 +8,7 @@ namespace quicr {
 uintVar_t
 to_varint(uint64_t v)
 {
-  assert(v < ((uint64_t)0x1 << 61));
+  assert(v < 0x1ull << 61);
   return static_cast<uintVar_t>(v);
 }
 
@@ -35,32 +35,48 @@ MessageBuffer::MessageBuffer(std::vector<uint8_t>&& buffer)
 }
 
 void
-MessageBuffer::push_back(const std::vector<uint8_t>& data)
+MessageBuffer::pop()
 {
-  _buffer.insert(_buffer.end(), data.begin(), data.end());
+  assert(!_buffer.empty());
+  _buffer.erase(_buffer.begin());
 }
 
 void
-MessageBuffer::pop_back(uint16_t len)
+MessageBuffer::push(const std::vector<uint8_t>& data)
+{
+  std::copy(data.begin(), data.end(), std::back_inserter(_buffer));
+}
+
+void
+MessageBuffer::push(std::vector<uint8_t>&& data)
+{
+  _buffer.insert(_buffer.end(),
+                 std::make_move_iterator(data.begin()),
+                 std::make_move_iterator(data.end()));
+}
+
+void
+MessageBuffer::pop(uint16_t len)
 {
   if (len > _buffer.size())
     throw std::out_of_range("len cannot be longer than the size of the buffer");
 
-  const auto delta = _buffer.size() - len;
-  _buffer.erase(_buffer.begin() + delta, _buffer.end());
+  _buffer.erase(_buffer.begin(), std::next(_buffer.begin(), len));
 };
 
 std::vector<uint8_t>
-MessageBuffer::back(uint16_t len)
+MessageBuffer::front(uint16_t len)
 {
   if (len > _buffer.size())
     throw std::out_of_range("len cannot be longer than the size of the buffer");
 
-  std::vector<uint8_t> vec(len);
-  const auto delta = _buffer.size() - len;
-  std::copy(_buffer.begin() + delta, _buffer.end(), vec.begin());
+  return { _buffer.begin(), std::next(_buffer.begin(), len) };
+}
 
-  return vec;
+std::vector<uint8_t>
+MessageBuffer::get()
+{
+  return std::move(_buffer);
 }
 
 std::string
@@ -83,7 +99,7 @@ MessageBuffer::operator=(MessageBuffer&& other)
 MessageBuffer&
 operator<<(MessageBuffer& msg, const uint8_t val)
 {
-  msg.push_back(val);
+  msg.push(val);
   return msg;
 }
 
@@ -94,8 +110,8 @@ operator>>(MessageBuffer& msg, uint8_t& val)
     throw MessageBufferException("Cannot read from empty message buffer");
   }
 
-  val = msg.back();
-  msg.pop_back();
+  val = msg.front();
+  msg.pop();
   return msg;
 }
 
@@ -105,14 +121,14 @@ operator<<(MessageBuffer& msg, const uint64_t& val)
   // TODO - std::copy version for little endian machines optimization
 
   // buffer on wire is little endian (that is *not* network byte order)
-  msg.push_back(uint8_t((val >> 0) & 0xFF));
-  msg.push_back(uint8_t((val >> 8) & 0xFF));
-  msg.push_back(uint8_t((val >> 16) & 0xFF));
-  msg.push_back(uint8_t((val >> 24) & 0xFF));
-  msg.push_back(uint8_t((val >> 32) & 0xFF));
-  msg.push_back(uint8_t((val >> 40) & 0xFF));
-  msg.push_back(uint8_t((val >> 48) & 0xFF));
-  msg.push_back(uint8_t((val >> 56) & 0xFF));
+  msg.push(uint8_t((val >> 56) & 0xFF));
+  msg.push(uint8_t((val >> 48) & 0xFF));
+  msg.push(uint8_t((val >> 40) & 0xFF));
+  msg.push(uint8_t((val >> 32) & 0xFF));
+  msg.push(uint8_t((val >> 24) & 0xFF));
+  msg.push(uint8_t((val >> 16) & 0xFF));
+  msg.push(uint8_t((val >> 8) & 0xFF));
+  msg.push(uint8_t((val >> 0) & 0xFF));
 
   return msg;
 }
@@ -142,8 +158,8 @@ operator>>(MessageBuffer& msg, uint64_t& val)
 MessageBuffer&
 operator<<(MessageBuffer& msg, const std::vector<uint8_t>& val)
 {
-  msg.push_back(val);
   msg << to_varint(val.size());
+  msg.push(val);
   return msg;
 }
 
@@ -158,9 +174,8 @@ operator>>(MessageBuffer& msg, std::vector<uint8_t>& val)
     throw MessageBufferException("Decoded vector size is 0");
   }
 
-  val.resize(len);
-  val = msg.back(len);
-  msg.pop_back(len);
+  val = msg.front(len);
+  msg.pop(len);
 
   return msg;
 }
@@ -176,32 +191,32 @@ operator<<(MessageBuffer& msg, const uintVar_t& v)
   }
 
   if (val < ((uint64_t)1 << 7)) {
-    msg.push_back(uint8_t(((val >> 0) & 0x7F)) | 0x00);
+    msg.push(uint8_t(((val >> 0) & 0x7F)) | 0x00);
     return msg;
   }
 
   if (val < ((uint64_t)1 << 14)) {
-    msg.push_back(uint8_t((val >> 0) & 0xFF));
-    msg.push_back(uint8_t(((val >> 8) & 0x3F) | 0x80));
+    msg.push(uint8_t(((val >> 8) & 0x3F) | 0x80));
+    msg.push(uint8_t((val >> 0) & 0xFF));
     return msg;
   }
 
   if (val < ((uint64_t)1 << 29)) {
-    msg.push_back(uint8_t((val >> 0) & 0xFF));
-    msg.push_back(uint8_t((val >> 8) & 0xFF));
-    msg.push_back(uint8_t((val >> 16) & 0xFF));
-    msg.push_back(uint8_t(((val >> 24) & 0x1F) | 0x80 | 0x40));
+    msg.push(uint8_t(((val >> 24) & 0x1F) | 0x80 | 0x40));
+    msg.push(uint8_t((val >> 16) & 0xFF));
+    msg.push(uint8_t((val >> 8) & 0xFF));
+    msg.push(uint8_t((val >> 0) & 0xFF));
     return msg;
   }
 
-  msg.push_back(uint8_t((val >> 0) & 0xFF));
-  msg.push_back(uint8_t((val >> 8) & 0xFF));
-  msg.push_back(uint8_t((val >> 16) & 0xFF));
-  msg.push_back(uint8_t((val >> 24) & 0xFF));
-  msg.push_back(uint8_t((val >> 32) & 0xFF));
-  msg.push_back(uint8_t((val >> 40) & 0xFF));
-  msg.push_back(uint8_t((val >> 48) & 0xFF));
-  msg.push_back(uint8_t(((val >> 56) & 0x0F) | 0x80 | 0x40 | 0x20));
+  msg.push(uint8_t(((val >> 56) & 0x0F) | 0x80 | 0x40 | 0x20));
+  msg.push(uint8_t((val >> 48) & 0xFF));
+  msg.push(uint8_t((val >> 40) & 0xFF));
+  msg.push(uint8_t((val >> 32) & 0xFF));
+  msg.push(uint8_t((val >> 24) & 0xFF));
+  msg.push(uint8_t((val >> 16) & 0xFF));
+  msg.push(uint8_t((val >> 8) & 0xFF));
+  msg.push(uint8_t((val >> 0) & 0xFF));
 
   return msg;
 }
@@ -210,7 +225,7 @@ MessageBuffer&
 operator>>(MessageBuffer& msg, uintVar_t& v)
 {
   uint8_t byte[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-  uint8_t first = msg.back();
+  uint8_t first = msg.front();
 
   if ((first & (0x80)) == 0) {
     msg >> byte[0];

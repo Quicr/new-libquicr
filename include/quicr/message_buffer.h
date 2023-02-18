@@ -3,6 +3,8 @@
 #include <quicr/quicr_name.h>
 #include <quicr/quicr_namespace.h>
 
+#include <cassert>
+#include <deque>
 #include <vector>
 
 namespace quicr {
@@ -24,26 +26,24 @@ class MessageBuffer
 {
 public:
   MessageBuffer() = default;
+  MessageBuffer(const MessageBuffer& other) = delete;
   MessageBuffer(MessageBuffer&& other);
   MessageBuffer(const std::vector<uint8_t>& buffer);
   MessageBuffer(std::vector<uint8_t>&& buffer);
-  MessageBuffer(const MessageBuffer& other) = delete;
   ~MessageBuffer() = default;
 
   bool empty() const { return _buffer.empty(); }
 
-  void push_back(uint8_t t) { _buffer.push_back(t); }
-  void pop_back() { _buffer.pop_back(); }
-  uint8_t back() const { return _buffer.back(); }
+  void push(uint8_t t) { _buffer.push_back(t); }
+  void pop();
+  uint8_t front() const { return _buffer.front(); }
 
-  void push_back(const std::vector<uint8_t>& data);
-  void pop_back(uint16_t len);
-  std::vector<uint8_t> back(uint16_t len);
+  void push(const std::vector<uint8_t>& data);
+  void push(std::vector<uint8_t>&& data);
+  void pop(uint16_t len);
+  std::vector<uint8_t> front(uint16_t len);
 
-  /**
-   * @brief Returns an rvalue reference to the buffer (moving it).
-   */
-  std::vector<uint8_t>&& get() { return std::move(_buffer); }
+  std::vector<uint8_t> get();
 
   std::string to_hex() const;
 
