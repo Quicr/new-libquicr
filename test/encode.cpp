@@ -58,7 +58,8 @@ TEST_CASE("SubscribeEnd Message encode/decode")
                   .reason = SubscribeResult::SubscribeStatus::Ok};
 
   MessageBuffer buffer;
-  buffer << s;
+  auto s_copy = s;
+  buffer << std::move(s_copy);
   SubscribeEnd s_out;
   CHECK_NOTHROW((buffer >> s_out));
 
@@ -78,7 +79,8 @@ TEST_CASE("PublishIntent Message encode/decode")
                     { 0, 1, 2, 3, 4 },    uintVar_t{ 0x0100 },
                     uintVar_t{ 0x0000 } };
   MessageBuffer buffer;
-  buffer << pi;
+  auto pi_copy = pi;
+  buffer << std::move(pi_copy);
   PublishIntent pi_out;
   CHECK_NOTHROW((buffer >> pi_out));
 
@@ -117,7 +119,8 @@ TEST_CASE("Publish Message encode/decode")
 
   PublishDatagram p{ d, MediaType::Text, uintVar_t{ 256 }, data };
   MessageBuffer buffer;
-  buffer << p;
+  auto p_copy = p;
+  buffer << std::move(p_copy);
   PublishDatagram p_out;
   CHECK_NOTHROW((buffer >> p_out));
 
@@ -136,7 +139,8 @@ TEST_CASE("PublishStream Message encode/decode")
 {
   PublishStream ps{ uintVar_t{ 5 }, { 0, 1, 2, 3, 4 } };
   MessageBuffer buffer;
-  buffer << ps;
+  auto ps_copy = ps;
+  buffer << std::move(ps_copy);
   PublishStream ps_out;
   CHECK_NOTHROW((buffer >> ps_out));
 
@@ -146,18 +150,16 @@ TEST_CASE("PublishStream Message encode/decode")
 
 TEST_CASE("PublishIntentEnd Message encode/decode")
 {
-  const std::string name = "12345";
   PublishIntentEnd pie{ MessageType::Publish,
-                        uintVar_t{ 5 },
-                        { name.begin(), name.end() },
+                        {"12345"},
                         { 0, 1, 2, 3, 4 } };
   MessageBuffer buffer;
-  buffer << pie;
+  auto pie_copy = pie;
+  buffer << std::move(pie_copy);
   PublishIntentEnd pie_out;
   CHECK_NOTHROW((buffer >> pie_out));
 
   CHECK_EQ(pie_out.message_type, pie.message_type);
-  CHECK_EQ(pie_out.name_length, pie.name_length);
   CHECK_EQ(pie_out.name, pie.name);
   CHECK_EQ(pie_out.payload, pie.payload);
 }

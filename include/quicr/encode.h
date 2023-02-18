@@ -128,7 +128,7 @@ struct PublishIntent
 };
 
 MessageBuffer&
-operator<<(MessageBuffer& buffer, const PublishIntent& msg);
+operator<<(MessageBuffer& buffer, PublishIntent&& msg);
 MessageBuffer&
 operator>>(MessageBuffer& buffer, PublishIntent& msg);
 
@@ -171,7 +171,7 @@ struct PublishDatagram
 };
 
 MessageBuffer&
-operator<<(MessageBuffer& buffer, const PublishDatagram& msg);
+operator<<(MessageBuffer& buffer, PublishDatagram&& msg);
 MessageBuffer&
 operator>>(MessageBuffer& buffer, PublishDatagram& msg);
 
@@ -182,22 +182,21 @@ struct PublishStream
 };
 
 MessageBuffer&
-operator<<(MessageBuffer& buffer, const PublishStream& msg);
+operator<<(MessageBuffer& buffer, PublishStream&& msg);
 MessageBuffer&
 operator>>(MessageBuffer& buffer, PublishStream& msg);
 
 struct PublishIntentEnd
 {
   MessageType message_type;
-  uintVar_t name_length;
-  std::vector<uint8_t> name;
+  quicr::Name name;
   //  * relay_auth_token_length(i),
   //  * relay_token(…),
   std::vector<uint8_t> payload;
 };
 
 MessageBuffer&
-operator<<(MessageBuffer& buffer, const PublishIntentEnd& msg);
+operator<<(MessageBuffer& buffer, PublishIntentEnd&& msg);
 MessageBuffer&
 operator>>(MessageBuffer& buffer, PublishIntentEnd& msg);
 

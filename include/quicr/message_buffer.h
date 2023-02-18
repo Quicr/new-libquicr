@@ -77,6 +77,8 @@ operator>>(MessageBuffer& msg, uintVar_t& val);
 MessageBuffer&
 operator<<(MessageBuffer& msg, const std::vector<uint8_t>& val);
 MessageBuffer&
+operator<<(MessageBuffer& msg, std::vector<uint8_t>&& val);
+MessageBuffer&
 operator>>(MessageBuffer& msg, std::vector<uint8_t>& val);
 }
 }

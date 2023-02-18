@@ -138,13 +138,13 @@ operator>>(MessageBuffer& buffer, SubscribeEnd& msg)
 /*===========================================================================*/
 
 MessageBuffer&
-operator<<(MessageBuffer& buffer, const PublishIntent& msg)
+operator<<(MessageBuffer& buffer, PublishIntent&& msg)
 {
   buffer << static_cast<uint8_t>(msg.message_type);
   buffer << msg.transaction_id;
   buffer << msg.quicr_namespace;
   buffer << msg.mask;
-  buffer << msg.payload;
+  buffer << std::move(msg.payload);
   buffer << msg.media_id;
   buffer << msg.datagram_capable;
   return buffer;
@@ -220,13 +220,13 @@ operator>>(MessageBuffer& buffer, Header& msg)
 }
 
 MessageBuffer&
-operator<<(MessageBuffer& buffer, const PublishDatagram& msg)
+operator<<(MessageBuffer& buffer, PublishDatagram&& msg)
 {
   buffer << static_cast<uint8_t>(MessageType::Publish);
-  buffer << msg.header;
+  buffer << std::move(msg.header);
   buffer << static_cast<uint8_t>(msg.media_type);
   buffer << msg.media_data_length;
-  buffer << msg.media_data;
+  buffer << std::move(msg.media_data);
 
   return buffer;
 }
@@ -259,10 +259,10 @@ operator>>(MessageBuffer& buffer, PublishDatagram& msg)
 }
 
 MessageBuffer&
-operator<<(MessageBuffer& buffer, const PublishStream& msg)
+operator<<(MessageBuffer& buffer, PublishStream&& msg)
 {
   buffer << msg.media_data_length;
-  buffer << msg.media_data;
+  buffer << std::move(msg.media_data);
   return buffer;
 }
 
@@ -280,12 +280,11 @@ operator>>(MessageBuffer& buffer, PublishStream& msg)
 }
 
 MessageBuffer&
-operator<<(MessageBuffer& buffer, const PublishIntentEnd& msg)
+operator<<(MessageBuffer& buffer, PublishIntentEnd&& msg)
 {
   buffer << static_cast<uint8_t>(msg.message_type);
-  buffer << msg.name_length;
   buffer << msg.name;
-  buffer << msg.payload;
+  buffer << std::move(msg.payload);
 
   return buffer;
 }
@@ -297,13 +296,7 @@ operator>>(MessageBuffer& buffer, PublishIntentEnd& msg)
   buffer >> msg_type;
   msg.message_type = static_cast<MessageType>(msg_type);
 
-  buffer >> msg.name_length;
   buffer >> msg.name;
-
-  if (msg.name.size() != static_cast<size_t>(msg.name_length))
-    throw MessageBufferException(
-      "PublishIntentEnd size of decoded media data must match decoded length");
-
   buffer >> msg.payload;
 
   return buffer;
