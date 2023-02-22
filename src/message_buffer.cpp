@@ -1,24 +1,14 @@
 #include <quicr/message_buffer.h>
 
+#include <algorithm>
+#include <array>
+#include <bit>
+#include <cassert>
 #include <iomanip>
 #include <sstream>
-#include <cassert>
+#include <vector>
 
-namespace quicr {
-uintVar_t
-to_varint(uint64_t v)
-{
-  assert(v < 0x1ull << 61);
-  return static_cast<uintVar_t>(v);
-}
-
-uint64_t
-from_varint(uintVar_t v)
-{
-  return static_cast<uint64_t>(v);
-}
-
-namespace messages {
+namespace quicr::messages {
 MessageBuffer::MessageBuffer(MessageBuffer&& other)
   : _buffer{ std::move(other._buffer) }
 {
@@ -96,13 +86,110 @@ MessageBuffer::operator=(MessageBuffer&& other)
   _buffer = std::move(other._buffer);
 }
 
+#ifndef htonll
+#define htonll(x) ((static_cast<uint64_t>(htonl(x)) << 32) + htonl((x) >> 32))
+#endif
+uint16_t
+hton(uint16_t value)
+{
+  return htons(value);
+}
+uint32_t
+hton(uint32_t value)
+{
+  return htonl(value);
+}
+uint64_t
+hton(uint64_t value)
+{
+  if constexpr (std::endian::native == std::endian::big)
+    return value;
+  else
+    return htonll(value);
+}
+
+template<typename Uint_t>
 MessageBuffer&
-operator<<(MessageBuffer& msg, const uint8_t val)
+operator<<(MessageBuffer& msg, Uint_t val)
+{
+  val = hton(val);
+  uint8_t* val_ptr = reinterpret_cast<uint8_t*>(&val);
+  msg._buffer.insert(msg._buffer.end(), val_ptr, val_ptr + sizeof(Uint_t));
+  return msg;
+}
+template MessageBuffer&
+operator<<(MessageBuffer& msg, uint16_t val);
+template MessageBuffer&
+operator<<(MessageBuffer& msg, uint32_t val);
+template MessageBuffer&
+operator<<(MessageBuffer& msg, uint64_t val);
+
+template<>
+MessageBuffer&
+operator<<(MessageBuffer& msg, uint8_t val)
 {
   msg.push(val);
   return msg;
 }
 
+#ifndef ntohll
+#define htonll(x) ((static_cast<uint64_t>(htonl(x)) << 32) + htonl((x) >> 32))
+#endif
+uint16_t
+ntoh(uint16_t value)
+{
+  return ntohs(value);
+}
+uint32_t
+ntoh(uint32_t value)
+{
+  return ntohl(value);
+}
+uint64_t
+ntoh(uint64_t value)
+{
+  if constexpr (std::endian::native == std::endian::big)
+    return value;
+  else
+    return ntohll(value);
+}
+
+template<typename Uint_t>
+MessageBuffer&
+operator>>(MessageBuffer& msg, Uint_t& val)
+{
+  if (msg.empty()) {
+    throw MessageBufferException("Cannot read from empty message buffer");
+  }
+
+  constexpr size_t byte_length = sizeof(Uint_t);
+  if (msg._buffer.size() < byte_length) {
+    throw MessageBufferException(
+      "Cannot read mismatched size buffer into size of type: Wanted " +
+      std::to_string(byte_length) + " but buffer only contains " +
+      std::to_string(msg._buffer.size()));
+  }
+
+  auto buffer_front = msg._buffer.begin();
+  auto buffer_byte_end =
+    std::next(buffer_front, std::min(msg._buffer.size(), byte_length));
+
+  std::copy_n(std::make_move_iterator(buffer_front),
+              byte_length,
+              reinterpret_cast<uint8_t*>(&val));
+  msg._buffer.erase(buffer_front, buffer_byte_end);
+  val = ntoh(val);
+
+  return msg;
+}
+template MessageBuffer&
+operator>>(MessageBuffer& msg, uint16_t& val);
+template MessageBuffer&
+operator>>(MessageBuffer& msg, uint32_t& val);
+template MessageBuffer&
+operator>>(MessageBuffer& msg, uint64_t& val);
+
+template<>
 MessageBuffer&
 operator>>(MessageBuffer& msg, uint8_t& val)
 {
@@ -116,49 +203,9 @@ operator>>(MessageBuffer& msg, uint8_t& val)
 }
 
 MessageBuffer&
-operator<<(MessageBuffer& msg, const uint64_t& val)
-{
-  // TODO - std::copy version for little endian machines optimization
-
-  // buffer on wire is little endian (that is *not* network byte order)
-  msg.push(uint8_t((val >> 56) & 0xFF));
-  msg.push(uint8_t((val >> 48) & 0xFF));
-  msg.push(uint8_t((val >> 40) & 0xFF));
-  msg.push(uint8_t((val >> 32) & 0xFF));
-  msg.push(uint8_t((val >> 24) & 0xFF));
-  msg.push(uint8_t((val >> 16) & 0xFF));
-  msg.push(uint8_t((val >> 8) & 0xFF));
-  msg.push(uint8_t((val >> 0) & 0xFF));
-
-  return msg;
-}
-
-MessageBuffer&
-operator>>(MessageBuffer& msg, uint64_t& val)
-{
-  uint8_t byte[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-
-  msg >> byte[7];
-  msg >> byte[6];
-  msg >> byte[5];
-  msg >> byte[4];
-  msg >> byte[3];
-  msg >> byte[2];
-  msg >> byte[1];
-  msg >> byte[0];
-
-  val = (uint64_t(byte[0]) << 0) + (uint64_t(byte[1]) << 8) +
-        (uint64_t(byte[2]) << 16) + (uint64_t(byte[3]) << 24) +
-        (uint64_t(byte[4]) << 32) + (uint64_t(byte[5]) << 40) +
-        (uint64_t(byte[6]) << 48) + (uint64_t(byte[7]) << 56);
-
-  return msg;
-}
-
-MessageBuffer&
 operator<<(MessageBuffer& msg, const std::vector<uint8_t>& val)
 {
-  msg << to_varint(val.size());
+  msg << static_cast<uintVar_t>(val.size());
   msg.push(val);
   return msg;
 }
@@ -166,7 +213,7 @@ operator<<(MessageBuffer& msg, const std::vector<uint8_t>& val)
 MessageBuffer&
 operator<<(MessageBuffer& msg, std::vector<uint8_t>&& val)
 {
-  msg << to_varint(val.size());
+  msg << static_cast<uintVar_t>(val.size());
   msg.push(std::move(val));
   return msg;
 }
@@ -174,10 +221,10 @@ operator<<(MessageBuffer& msg, std::vector<uint8_t>&& val)
 MessageBuffer&
 operator>>(MessageBuffer& msg, std::vector<uint8_t>& val)
 {
-  uintVar_t vecSize{ 0 };
-  msg >> vecSize;
+  uintVar_t vec_size = 0;
+  msg >> vec_size;
 
-  size_t len = from_varint(vecSize);
+  size_t len = vec_size;
   if (len == 0) {
     throw MessageBufferException("Decoded vector size is 0");
   }
@@ -191,7 +238,7 @@ operator>>(MessageBuffer& msg, std::vector<uint8_t>& val)
 MessageBuffer&
 operator<<(MessageBuffer& msg, const uintVar_t& v)
 {
-  uint64_t val = from_varint(v);
+  uint64_t val = v;
 
   if (val >= ((uint64_t)1 << 61)) {
     throw MessageBufferException(
@@ -238,7 +285,7 @@ operator>>(MessageBuffer& msg, uintVar_t& v)
   if ((first & (0x80)) == 0) {
     msg >> byte[0];
     uint8_t val = ((byte[0] & 0x7F) << 0);
-    v = to_varint(val);
+    v = val;
     return msg;
   }
 
@@ -246,7 +293,7 @@ operator>>(MessageBuffer& msg, uintVar_t& v)
     msg >> byte[1];
     msg >> byte[0];
     uint16_t val = (((uint16_t)byte[1] & 0x3F) << 8) + ((uint16_t)byte[0] << 0);
-    v = to_varint(val);
+    v = val;
     return msg;
   }
 
@@ -258,7 +305,7 @@ operator>>(MessageBuffer& msg, uintVar_t& v)
     uint32_t val = ((uint32_t)(byte[3] & 0x1F) << 24) +
                    ((uint32_t)byte[2] << 16) + ((uint32_t)byte[1] << 8) +
                    ((uint32_t)byte[0] << 0);
-    v = to_varint(val);
+    v = val;
     return msg;
   }
 
@@ -275,9 +322,8 @@ operator>>(MessageBuffer& msg, uintVar_t& v)
                  ((uint64_t)(byte[4]) << 32) + ((uint64_t)(byte[3]) << 24) +
                  ((uint64_t)(byte[2]) << 16) + ((uint64_t)(byte[1]) << 8) +
                  ((uint64_t)(byte[0]) << 0);
-  v = to_varint(val);
+  v = val;
   return msg;
 }
 
 } // namespace quicr::messages
-} // namespace quicr

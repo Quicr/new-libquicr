@@ -138,6 +138,19 @@ operator>>(MessageBuffer& buffer, SubscribeEnd& msg)
 /*===========================================================================*/
 
 MessageBuffer&
+operator<<(MessageBuffer& buffer, const PublishIntent& msg)
+{
+  buffer << static_cast<uint8_t>(msg.message_type);
+  buffer << msg.transaction_id;
+  buffer << msg.quicr_namespace;
+  buffer << msg.mask;
+  buffer << msg.payload;
+  buffer << msg.media_id;
+  buffer << msg.datagram_capable;
+  return buffer;
+}
+
+MessageBuffer&
 operator<<(MessageBuffer& buffer, PublishIntent&& msg)
 {
   buffer << static_cast<uint8_t>(msg.message_type);
@@ -220,6 +233,18 @@ operator>>(MessageBuffer& buffer, Header& msg)
 }
 
 MessageBuffer&
+operator<<(MessageBuffer& buffer, const PublishDatagram& msg)
+{
+  buffer << static_cast<uint8_t>(MessageType::Publish);
+  buffer << msg.header;
+  buffer << static_cast<uint8_t>(msg.media_type);
+  buffer << msg.media_data_length;
+  buffer << msg.media_data;
+
+  return buffer;
+}
+
+MessageBuffer&
 operator<<(MessageBuffer& buffer, PublishDatagram&& msg)
 {
   buffer << static_cast<uint8_t>(MessageType::Publish);
@@ -259,6 +284,14 @@ operator>>(MessageBuffer& buffer, PublishDatagram& msg)
 }
 
 MessageBuffer&
+operator<<(MessageBuffer& buffer, const PublishStream& msg)
+{
+  buffer << msg.media_data_length;
+  buffer << msg.media_data;
+  return buffer;
+}
+
+MessageBuffer&
 operator<<(MessageBuffer& buffer, PublishStream&& msg)
 {
   buffer << msg.media_data_length;
@@ -275,6 +308,16 @@ operator>>(MessageBuffer& buffer, PublishStream& msg)
     throw MessageBufferException(
       "PublishStream size of decoded media data must match decoded length");
   }
+
+  return buffer;
+}
+
+MessageBuffer&
+operator<<(MessageBuffer& buffer, const PublishIntentEnd& msg)
+{
+  buffer << static_cast<uint8_t>(msg.message_type);
+  buffer << msg.name;
+  buffer << msg.payload;
 
   return buffer;
 }

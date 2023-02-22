@@ -128,6 +128,8 @@ struct PublishIntent
 };
 
 MessageBuffer&
+operator<<(MessageBuffer& buffer, const PublishIntent& msg);
+MessageBuffer&
 operator<<(MessageBuffer& buffer, PublishIntent&& msg);
 MessageBuffer&
 operator>>(MessageBuffer& buffer, PublishIntent& msg);
@@ -171,6 +173,8 @@ struct PublishDatagram
 };
 
 MessageBuffer&
+operator<<(MessageBuffer& buffer, const PublishDatagram& msg);
+MessageBuffer&
 operator<<(MessageBuffer& buffer, PublishDatagram&& msg);
 MessageBuffer&
 operator>>(MessageBuffer& buffer, PublishDatagram& msg);
@@ -181,6 +185,8 @@ struct PublishStream
   std::vector<uint8_t> media_data;
 };
 
+MessageBuffer&
+operator<<(MessageBuffer& buffer, const PublishStream& msg);
 MessageBuffer&
 operator<<(MessageBuffer& buffer, PublishStream&& msg);
 MessageBuffer&
@@ -196,18 +202,20 @@ struct PublishIntentEnd
 };
 
 MessageBuffer&
+operator<<(MessageBuffer& buffer, const PublishIntentEnd& msg);
+MessageBuffer&
 operator<<(MessageBuffer& buffer, PublishIntentEnd&& msg);
 MessageBuffer&
 operator>>(MessageBuffer& buffer, PublishIntentEnd& msg);
 
-messages::MessageBuffer&
-operator<<(messages::MessageBuffer& msg, const Name& ns);
-messages::MessageBuffer&
-operator>>(messages::MessageBuffer& msg, Name& ns);
+MessageBuffer&
+operator<<(MessageBuffer& msg, const Name& ns);
+MessageBuffer&
+operator>>(MessageBuffer& msg, Name& ns);
 
-messages::MessageBuffer&
-operator<<(messages::MessageBuffer& msg, const Namespace& ns);
-messages::MessageBuffer&
-operator>>(messages::MessageBuffer& msg, Namespace& ns);
+MessageBuffer&
+operator<<(MessageBuffer& msg, const Namespace& ns);
+MessageBuffer&
+operator>>(MessageBuffer& msg, Namespace& ns);
 
 }

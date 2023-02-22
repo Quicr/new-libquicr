@@ -18,7 +18,16 @@ void BM_MessageBufferPushBack(benchmark::State& state)
     quicr::messages::MessageBuffer buffer;
     for (auto _ : state)
     {
-        buffer.push(uint8_t(std::rand() % 100));
+        buffer << uint8_t(std::rand() % 100);
+    }
+}
+
+void BM_MessageBufferPushBack64(benchmark::State& state)
+{
+    quicr::messages::MessageBuffer buffer;
+    for (auto _ : state)
+    {
+        buffer << uint64_t(std::rand() % 100);
     }
 }
 
@@ -49,5 +58,6 @@ void BM_MessageBufferPushBackMoveVector(benchmark::State& state)
 
 BENCHMARK(BM_MessageBufferConstruct);
 BENCHMARK(BM_MessageBufferPushBack);
+BENCHMARK(BM_MessageBufferPushBack64);
 BENCHMARK(BM_MessageBufferPushBackVector);
 BENCHMARK(BM_MessageBufferPushBackMoveVector);

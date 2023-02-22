@@ -15,18 +15,6 @@ Name::Name()
 {
 }
 
-Name::Name(const Name& other)
-  : _hi{ other._hi }
-  , _low{ other._low }
-{
-}
-
-Name::Name(Name&& other)
-  : _hi{ std::move(other._hi) }
-  , _low{ std::move(other._low) }
-{
-}
-
 Name::Name(const std::string& hex_value)
 {
   uint8_t start_pos = 0;

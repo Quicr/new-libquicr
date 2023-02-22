@@ -100,6 +100,7 @@ TEST_CASE("quicr::Name Arithmetic Tests")
            quicr::Name("0x0000000000000000FFFFFFFFFFFFFFFE"));
 
   quicr::Name val42_copy(val42);
+  CHECK_EQ(val42_copy, val42);
   CHECK_NE(val42_copy++, val43);
   CHECK_EQ(val42_copy, val43);
   CHECK_NE(val42_copy--, val42);
@@ -121,10 +122,10 @@ TEST_CASE("quicr::Name Constructor Tests")
 
 TEST_CASE("quicr::Name Byte Array Tests")
 {
-  std::vector<uint8_t> byte_arr(sizeof(quicr::Name::uint_type) * 2);
-  for (size_t i = 0; i < sizeof(quicr::Name::uint_type); ++i) {
+  std::vector<uint8_t> byte_arr(quicr::Name::size());
+  for (size_t i = 0; i < quicr::Name::size() / 2; ++i) {
     byte_arr[i] = static_cast<uint8_t>((0x0 >> 8 * i));
-    byte_arr[i + sizeof(quicr::Name::uint_type)] =
+    byte_arr[i + quicr::Name::size() / 2] =
       static_cast<uint8_t>((0x1000000000000000 >> 8 * i));
   }
 

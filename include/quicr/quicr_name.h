@@ -13,12 +13,13 @@ class MessageBuffer;
 
 class Name
 {
-public:
   using uint_type = uint64_t;
 
+public:
+
   Name();
-  Name(const Name& other);
-  Name(Name&& other);
+  Name(const Name& other) = default;
+  Name(Name&& other) = default;
   Name(const std::string& hex_value);
   Name(uint8_t* data, size_t length);
   Name(const uint8_t* data, size_t length);
