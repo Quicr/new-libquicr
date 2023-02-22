@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <sstream>
 #include <vector>
+#include <arpa/inet.h>
 
 namespace quicr::messages {
 MessageBuffer::MessageBuffer(MessageBuffer&& other)

@@ -1,12 +1,13 @@
 #pragma once
-#include <random>
-#include <string>
-#include <vector>
 
 #include <quicr/message_buffer.h>
 #include <quicr/quicr_common.h>
 #include <quicr/quicr_name.h>
 #include <quicr/quicr_namespace.h>
+
+#include <random>
+#include <string>
+#include <vector>
 
 /**
  *  Utilties to encode and decode protocol messages
