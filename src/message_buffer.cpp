@@ -134,7 +134,7 @@ operator<<(MessageBuffer& msg, uint8_t val)
 }
 
 #ifndef ntohll
-#define htonll(x) ((static_cast<uint64_t>(htonl(x)) << 32) + htonl((x) >> 32))
+#define ntohll(x) ((static_cast<uint64_t>(htonl(x)) << 32) + htonl((x) >> 32))
 #endif
 uint16_t
 ntoh(uint16_t value)
