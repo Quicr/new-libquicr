@@ -103,7 +103,6 @@ swap_bytes(uint64_t value)
   if constexpr (std::endian::native == std::endian::big)
     return value;
 
-#ifndef htonll
   return ((((value) >> 56) & 0x00000000000000ff) |
           (((value) >> 40) & 0x000000000000ff00) |
           (((value) >> 24) & 0x0000000000ff0000) |
@@ -112,9 +111,6 @@ swap_bytes(uint64_t value)
           (((value) << 24) & 0x0000ff0000000000) |
           (((value) << 40) & 0x00ff000000000000) |
           (((value) << 56) & 0xff00000000000000));
-#else
-  return htonll(value);
-#endif
 }
 
 template<typename Uint_t>
