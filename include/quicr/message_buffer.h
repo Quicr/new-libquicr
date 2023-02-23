@@ -32,29 +32,29 @@ public:
     return *this;
   }
 
-  friend constexpr bool operator==(uintVar_t a, uintVar_t b)
+  constexpr bool operator==(uintVar_t other)
   {
-    return a._value == b._value;
+    return _value == other._value;
   }
-  friend constexpr bool operator!=(uintVar_t a, uintVar_t b)
+  constexpr bool operator!=(uintVar_t other)
   {
-    return !(a == b);
+    return !(*this == other);
   }
-  friend constexpr bool operator>(uintVar_t a, uintVar_t b)
+  constexpr bool operator>(uintVar_t other)
   {
-    return a._value > b._value;
+    return _value > other._value;
   }
-  friend constexpr bool operator>=(uintVar_t a, uintVar_t b)
+  constexpr bool operator>=(uintVar_t other)
   {
-    return a._value >= b._value;
+    return _value >= other._value;
   }
-  friend constexpr bool operator<(uintVar_t a, uintVar_t b)
+  constexpr bool operator<(uintVar_t other)
   {
-    return a._value < b._value;
+    return _value < other._value;
   }
-  friend constexpr bool operator<=(uintVar_t a, uintVar_t b)
+  constexpr bool operator<=(uintVar_t other)
   {
-    return a._value <= b._value;
+    return _value <= other._value;
   }
 
   friend std::ostream& operator<<(std::ostream& os, uintVar_t v)
@@ -65,19 +65,6 @@ public:
 private:
   uint64_t _value;
 };
-
-[[deprecated("uint64_t is explicitly convertible to uintVar_t. Use assignment "
-             "operator instead")]] inline uintVar_t
-to_varint(uint64_t v)
-{
-  return v;
-}
-[[deprecated("uintVar_t is implicitly convertible to uint64_t. Use assignment "
-             "operator instead")]] inline uint64_t
-from_varint(uintVar_t v)
-{
-  return v;
-}
 }
 
 namespace quicr::messages {
