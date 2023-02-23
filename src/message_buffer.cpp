@@ -103,14 +103,14 @@ swap_bytes(uint64_t value)
   if constexpr (std::endian::native == std::endian::big)
     return value;
 
-  return ((((value) >> 56) & 0x00000000000000ff) |
-          (((value) >> 40) & 0x000000000000ff00) |
-          (((value) >> 24) & 0x0000000000ff0000) |
-          (((value) >>  8) & 0x00000000ff000000) |
-          (((value) <<  8) & 0x000000ff00000000) |
-          (((value) << 24) & 0x0000ff0000000000) |
-          (((value) << 40) & 0x00ff000000000000) |
-          (((value) << 56) & 0xff00000000000000));
+  return ((value >> 56) & 0x00000000000000ff) |
+         ((value >> 40) & 0x000000000000ff00) |
+         ((value >> 24) & 0x0000000000ff0000) |
+         ((value >>  8) & 0x00000000ff000000) |
+         ((value <<  8) & 0x000000ff00000000) |
+         ((value << 24) & 0x0000ff0000000000) |
+         ((value << 40) & 0x00ff000000000000) |
+         ((value << 56) & 0xff00000000000000);
 }
 
 template<typename Uint_t>
