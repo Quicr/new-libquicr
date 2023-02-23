@@ -87,33 +87,41 @@ MessageBuffer::operator=(MessageBuffer&& other)
   _buffer = std::move(other._buffer);
 }
 
-#ifndef htonll
-#define htonll(x) ((static_cast<uint64_t>(htonl(x)) << 32) + htonl((x) >> 32))
-#endif
-uint16_t
-hton(uint16_t value)
+constexpr uint16_t
+swap_bytes(uint16_t value)
 {
   return htons(value);
 }
-uint32_t
-hton(uint32_t value)
+constexpr uint32_t
+swap_bytes(uint32_t value)
 {
   return htonl(value);
 }
-uint64_t
-hton(uint64_t value)
+constexpr uint64_t
+swap_bytes(uint64_t value)
 {
   if constexpr (std::endian::native == std::endian::big)
     return value;
-  else
-    return htonll(value);
+
+#ifndef htonll
+  return ((((value) >> 56) & 0x00000000000000ff) |
+          (((value) >> 40) & 0x000000000000ff00) |
+          (((value) >> 24) & 0x0000000000ff0000) |
+          (((value) >>  8) & 0x00000000ff000000) |
+          (((value) <<  8) & 0x000000ff00000000) |
+          (((value) << 24) & 0x0000ff0000000000) |
+          (((value) << 40) & 0x00ff000000000000) |
+          (((value) << 56) & 0xff00000000000000));
+#else
+  return htonll(value);
+#endif
 }
 
 template<typename Uint_t>
 MessageBuffer&
 operator<<(MessageBuffer& msg, Uint_t val)
 {
-  val = hton(val);
+  val = swap_bytes(val);
   uint8_t* val_ptr = reinterpret_cast<uint8_t*>(&val);
   msg._buffer.insert(msg._buffer.end(), val_ptr, val_ptr + sizeof(Uint_t));
   return msg;
@@ -131,28 +139,6 @@ operator<<(MessageBuffer& msg, uint8_t val)
 {
   msg.push(val);
   return msg;
-}
-
-#ifndef ntohll
-#define ntohll(x) ((static_cast<uint64_t>(htonl(x)) << 32) + htonl((x) >> 32))
-#endif
-uint16_t
-ntoh(uint16_t value)
-{
-  return ntohs(value);
-}
-uint32_t
-ntoh(uint32_t value)
-{
-  return ntohl(value);
-}
-uint64_t
-ntoh(uint64_t value)
-{
-  if constexpr (std::endian::native == std::endian::big)
-    return value;
-  else
-    return ntohll(value);
 }
 
 template<typename Uint_t>
@@ -179,7 +165,7 @@ operator>>(MessageBuffer& msg, Uint_t& val)
               byte_length,
               reinterpret_cast<uint8_t*>(&val));
   msg._buffer.erase(buffer_front, buffer_byte_end);
-  val = ntoh(val);
+  val = swap_bytes(val);
 
   return msg;
 }
