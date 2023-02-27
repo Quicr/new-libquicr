@@ -1,10 +1,12 @@
 #include <doctest/doctest.h>
-#include <map>
-#include <quicr/quicr_common.h>
 
 #include <quicr/hex_endec.h>
+#include <quicr/quicr_common.h>
 #include <quicr/quicr_name.h>
 #include <quicr/quicr_namespace.h>
+
+#include <map>
+#include <type_traits>
 
 TEST_CASE("quicr::Name Constructor Tests")
 {
@@ -23,6 +25,12 @@ TEST_CASE("quicr::Name Constructor Tests")
 
   CHECK_NOTHROW(quicr::Name("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"));
   CHECK_THROWS(quicr::Name("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0"));
+
+  CHECK(std::is_trivially_destructible_v<quicr::Name>);
+  CHECK(std::is_trivially_copyable_v<quicr::Name>);
+  CHECK(std::is_trivially_copy_assignable_v<quicr::Name>);
+  CHECK(std::is_trivially_move_constructible_v<quicr::Name>);
+  CHECK(std::is_trivially_move_assignable_v<quicr::Name>);
 }
 
 TEST_CASE("quicr::Name Bit Shifting Tests")
@@ -109,7 +117,7 @@ TEST_CASE("quicr::Name Arithmetic Tests")
   CHECK_EQ(--val42_copy, val42);
 }
 
-TEST_CASE("quicr::Name Constructor Tests")
+TEST_CASE("quicr::Name Bitwise Not Tests")
 {
   quicr::Name zeros;
   quicr::Name ones = ~zeros;

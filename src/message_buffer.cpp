@@ -34,7 +34,7 @@ MessageBuffer::pop()
 void
 MessageBuffer::push(const std::vector<uint8_t>& data)
 {
-  std::copy(data.begin(), data.end(), std::back_inserter(_buffer));
+  _buffer.insert(_buffer.end(), data.begin(), data.end());
 }
 
 void
@@ -89,17 +89,14 @@ MessageBuffer::operator=(MessageBuffer&& other)
 constexpr uint16_t
 swap_bytes(uint16_t value)
 {
-  return ((value >>  8) & 0x00ff) |
-         ((value <<  8) & 0xff00);
+  return ((value >> 8) & 0x00ff) | ((value << 8) & 0xff00);
 }
 
 constexpr uint32_t
 swap_bytes(uint32_t value)
 {
-  return ((value >> 24) & 0x000000ff) |
-         ((value >>  8) & 0x0000ff00) |
-         ((value <<  8) & 0x00ff0000) |
-         ((value << 24) & 0xff000000);
+  return ((value >> 24) & 0x000000ff) | ((value >> 8) & 0x0000ff00) |
+         ((value << 8) & 0x00ff0000) | ((value << 24) & 0xff000000);
 }
 
 constexpr uint64_t
@@ -111,8 +108,8 @@ swap_bytes(uint64_t value)
   return ((value >> 56) & 0x00000000000000ff) |
          ((value >> 40) & 0x000000000000ff00) |
          ((value >> 24) & 0x0000000000ff0000) |
-         ((value >>  8) & 0x00000000ff000000) |
-         ((value <<  8) & 0x000000ff00000000) |
+         ((value >> 8) & 0x00000000ff000000) |
+         ((value << 8) & 0x000000ff00000000) |
          ((value << 24) & 0x0000ff0000000000) |
          ((value << 40) & 0x00ff000000000000) |
          ((value << 56) & 0xff00000000000000);

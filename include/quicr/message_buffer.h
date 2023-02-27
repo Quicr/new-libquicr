@@ -32,30 +32,12 @@ public:
     return *this;
   }
 
-  constexpr bool operator==(uintVar_t other)
-  {
-    return _value == other._value;
-  }
-  constexpr bool operator!=(uintVar_t other)
-  {
-    return !(*this == other);
-  }
-  constexpr bool operator>(uintVar_t other)
-  {
-    return _value > other._value;
-  }
-  constexpr bool operator>=(uintVar_t other)
-  {
-    return _value >= other._value;
-  }
-  constexpr bool operator<(uintVar_t other)
-  {
-    return _value < other._value;
-  }
-  constexpr bool operator<=(uintVar_t other)
-  {
-    return _value <= other._value;
-  }
+  constexpr bool operator==(uintVar_t other) { return _value == other._value; }
+  constexpr bool operator!=(uintVar_t other) { return !(*this == other); }
+  constexpr bool operator>(uintVar_t other) { return _value > other._value; }
+  constexpr bool operator>=(uintVar_t other) { return _value >= other._value; }
+  constexpr bool operator<(uintVar_t other) { return _value < other._value; }
+  constexpr bool operator<=(uintVar_t other) { return _value <= other._value; }
 
   friend std::ostream& operator<<(std::ostream& os, uintVar_t v)
   {
@@ -76,7 +58,8 @@ class MessageBuffer
 {
 public:
   MessageBuffer() = default;
-  MessageBuffer(const MessageBuffer& other) = delete;
+  MessageBuffer(size_t reserve_size) { _buffer.reserve(reserve_size); }
+  MessageBuffer(const MessageBuffer& other) = default;
   MessageBuffer(MessageBuffer&& other);
   MessageBuffer(const std::vector<uint8_t>& buffer);
   MessageBuffer(std::vector<uint8_t>&& buffer);
@@ -86,7 +69,7 @@ public:
 
   void push(uint8_t t) { _buffer.push_back(t); }
   void pop();
-  uint8_t front() const { return _buffer.front(); }
+  const uint8_t& front() const { return _buffer.front(); }
 
   void push(const std::vector<uint8_t>& data);
   void push(std::vector<uint8_t>&& data);
