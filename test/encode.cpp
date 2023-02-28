@@ -55,7 +55,7 @@ TEST_CASE("SubscribeEnd Message encode/decode")
   quicr::Namespace qnamespace{ { "0x10000000000000002000" }, 125 };
 
   SubscribeEnd s{ .quicr_namespace = qnamespace,
-                  .reason = SubscribeResult::SubscribeStatus::Ok};
+                  .reason = SubscribeResult::SubscribeStatus::Ok };
 
   MessageBuffer buffer;
   auto s_copy = s;
@@ -65,6 +65,20 @@ TEST_CASE("SubscribeEnd Message encode/decode")
 
   CHECK_EQ(s_out.quicr_namespace, s.quicr_namespace);
   CHECK_EQ(s_out.reason, s.reason);
+}
+
+TEST_CASE("Unsubscribe Message encode/decode")
+{
+  quicr::Namespace qnamespace{ { "0x10000000000000002000" }, 125 };
+
+  Unsubscribe us{ .quicr_namespace = qnamespace };
+
+  MessageBuffer buffer;
+  buffer << us;
+  Unsubscribe us_out;
+  CHECK_NOTHROW((buffer >> us_out));
+
+  CHECK_EQ(us_out.quicr_namespace, us.quicr_namespace);
 }
 
 /*===========================================================================*/
@@ -150,9 +164,7 @@ TEST_CASE("PublishStream Message encode/decode")
 
 TEST_CASE("PublishIntentEnd Message encode/decode")
 {
-  PublishIntentEnd pie{ MessageType::Publish,
-                        {"12345"},
-                        { 0, 1, 2, 3, 4 } };
+  PublishIntentEnd pie{ MessageType::Publish, { "12345" }, { 0, 1, 2, 3, 4 } };
   MessageBuffer buffer;
   auto pie_copy = pie;
   buffer << std::move(pie_copy);
@@ -167,13 +179,14 @@ TEST_CASE("PublishIntentEnd Message encode/decode")
 TEST_CASE("VarInt Encode/Decode")
 {
   MessageBuffer buffer;
-  std::vector<uintVar_t> values = { uintVar_t{128}, uintVar_t{16384}, uintVar_t{536870912} };
-  for (const auto& value : values)
-  {
+  std::vector<uintVar_t> values = { uintVar_t{ 128 },
+                                    uintVar_t{ 16384 },
+                                    uintVar_t{ 536870912 } };
+  for (const auto& value : values) {
     buffer << value;
     uintVar_t out;
     buffer >> out;
 
-    CHECK_NE(out, uintVar_t{0});
+    CHECK_NE(out, uintVar_t{ 0 });
   }
 }

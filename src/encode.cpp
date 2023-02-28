@@ -52,8 +52,8 @@ operator>>(MessageBuffer& buffer, Subscribe& msg)
 MessageBuffer&
 operator<<(MessageBuffer& buffer, const Unsubscribe& msg)
 {
-  buffer << msg.quicr_namespace;
   buffer << static_cast<uint8_t>(MessageType::Unsubscribe);
+  buffer << msg.quicr_namespace;
 
   return buffer;
 }
