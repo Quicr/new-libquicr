@@ -320,7 +320,7 @@ QuicRServer::TransportDelegate::on_recv_notify(
           default:
             break;
         }
-      } catch (const std::exception& /* ex */) {
+      } catch (const messages::MessageBuffer::ReadException& /* ex */) {
         continue;
       } catch (const std::exception& /* ex */) {
         continue;
