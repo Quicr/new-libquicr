@@ -99,11 +99,37 @@ QuicRServer::run()
 }
 
 void
-QuicRServer::publishIntentResponse(
-  const quicr::Namespace& /* quicr_namespace */,
-  const PublishIntentResult& /* result */)
+QuicRServer::publishIntentResponse(const quicr::Namespace& quicr_namespace,
+                                   const PublishIntentResult& result)
 {
-  throw std::runtime_error("Unimplemented");
+  messages::Response status;
+  switch (result.status) {
+    case PublishStatus::Ok:
+      status = messages::Response::Ok;
+      break;
+    case PublishStatus::Redirect:
+    case PublishStatus::ReAssigned:
+      status = messages::Response::Redirect;
+      break;
+    case PublishStatus::FailedError:
+    case PublishStatus::FailedAuthz:
+      status = messages::Response::Fail;
+      break;
+    case PublishStatus::TimeOut:
+      status = messages::Response::Expired;
+      break;
+  }
+
+  const auto& context = publish_state[quicr_namespace];
+  messages::PublishIntentResponse response{
+    messages::MessageType::PublishResponse, status, context.transport_context_id
+  };
+
+  messages::MessageBuffer msg(sizeof(response));
+  msg << response;
+
+  transport->enqueue(
+    context.transport_context_id, context.media_stream_id, msg.get());
 }
 
 void
@@ -235,21 +261,56 @@ QuicRServer::handle_unsubscribe(
 }
 
 void
-QuicRServer::handle_publish(
-  [[maybe_unused]] const qtransport::TransportContextId& context_id,
-  [[maybe_unused]] const qtransport::MediaStreamId& mStreamId,
-  messages::MessageBuffer&& msg)
+QuicRServer::handle_publish(const qtransport::TransportContextId& context_id,
+                            const qtransport::MediaStreamId& mStreamId,
+                            messages::MessageBuffer&& msg)
 {
   messages::PublishDatagram datagram;
   msg >> datagram;
+
+  bool is_valid_name = false;
+  for (const auto& [ns, _] : publish_state) {
+    if (ns.contains(datagram.header.name)) {
+      is_valid_name = true;
+      break;
+    }
+  }
+
+  if (!is_valid_name)
+    return;
 
   // TODO: Add publish_state when we support PublishIntent
   delegate.onPublisherObject(context_id, mStreamId, false, std::move(datagram));
 }
 
-// --------------------------------------------------
+void
+QuicRServer::handle_publish_intent(
+  [[maybe_unused]] const qtransport::TransportContextId& context_id,
+  [[maybe_unused]] const qtransport::MediaStreamId& mStreamId,
+  messages::MessageBuffer&& msg)
+{
+  messages::PublishIntent intent;
+  msg >> intent;
+
+  if (!publish_state.count(intent.quicr_namespace)) {
+    PublishContext context;
+    context.transport_context_id = context_id;
+    context.media_stream_id = mStreamId;
+
+    publish_state[intent.quicr_namespace] = context;
+  }
+
+  delegate.onPublishIntent(intent.quicr_namespace,
+                           "" /* intent.origin_url */,
+                           false,
+                           "" /* intent.relay_token */,
+                           std::move(intent.payload));
+}
+
+/*===========================================================================*/
 // Transport Delegate Implementation
-// ---------------
+/*===========================================================================*/
+
 QuicRServer::TransportDelegate::TransportDelegate(quicr::QuicRServer& server)
   : server(server)
 {
@@ -302,10 +363,10 @@ QuicRServer::TransportDelegate::on_recv_notify(
       try {
         // TODO: Extracting type will change when the message is encoded
         // correctly
-        uint8_t msg_type = data.value().front();
+        auto msg_type = static_cast<messages::MessageType>(data->front());
         messages::MessageBuffer msg_buffer{ data.value() };
 
-        switch (static_cast<messages::MessageType>(msg_type)) {
+        switch (msg_type) {
           case messages::MessageType::Subscribe:
             server.handle_subscribe(
               context_id, mStreamId, std::move(msg_buffer));
@@ -317,6 +378,11 @@ QuicRServer::TransportDelegate::on_recv_notify(
             server.handle_unsubscribe(
               context_id, mStreamId, std::move(msg_buffer));
             break;
+          case messages::MessageType::PublishIntent: {
+            server.handle_publish_intent(
+              context_id, mStreamId, std::move(msg_buffer));
+            break;
+          }
           default:
             break;
         }

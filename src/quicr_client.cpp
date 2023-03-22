@@ -160,14 +160,31 @@ QuicRClient::QuicRClient(std::shared_ptr<ITransport> transport_in)
 QuicRClient::~QuicRClient() {}
 
 bool
-QuicRClient::publishIntent(
-  std::shared_ptr<PublisherDelegate> /* pub_delegate */,
-  const quicr::Namespace& /* quicr_namespace */,
-  const std::string& /* origin_url */,
-  const std::string& /* auth_token */,
-  bytes&& /* payload */)
+QuicRClient::publishIntent(std::shared_ptr<PublisherDelegate> pub_delegate,
+                           const quicr::Namespace& quicr_namespace,
+                           const std::string& /* origin_url */,
+                           const std::string& /* auth_token */,
+                           bytes&& payload)
 {
-  throw std::runtime_error("UnImplemented");
+  if (!pub_delegates.count(quicr_namespace)) {
+    pub_delegates[quicr_namespace] = pub_delegate;
+  }
+
+  messages::PublishIntent intent{ messages::MessageType::Publish,
+                                  messages::create_transaction_id(),
+                                  quicr_namespace,
+                                  std::move(payload),
+                                  media_stream_id,
+                                  1 };
+
+  messages::MessageBuffer msg{ sizeof(messages::PublishIntent) +
+                               payload.size() };
+  msg << intent;
+
+  auto error =
+    transport->enqueue(transport_context_id, media_stream_id, msg.get());
+
+  return error == qtransport::TransportError::None;
 }
 
 void
@@ -193,7 +210,7 @@ QuicRClient::subscribe(std::shared_ptr<SubscriberDelegate> subscriber_delegate,
 
   // encode subscribe
   messages::MessageBuffer msg{};
-  auto transaction_id = messages::transaction_id();
+  auto transaction_id = messages::create_transaction_id();
   messages::Subscribe subscribe{ 0x1, transaction_id, quicr_namespace, intent };
   msg << subscribe;
 
@@ -448,9 +465,8 @@ QuicRClient::handle(messages::MessageBuffer&& msg)
     return;
   }
 
-  uint8_t msg_type = msg.front();
-
-  switch (static_cast<messages::MessageType>(msg_type)) {
+  auto msg_type = static_cast<messages::MessageType>(msg.front());
+  switch (msg_type) {
     case messages::MessageType::SubscribeResponse: {
       messages::SubscribeResponse response;
       msg >> response;
@@ -511,6 +527,9 @@ QuicRClient::handle(messages::MessageBuffer&& msg)
 
       break;
     }
+
+    default:
+      break;
   }
 }
 } // namespace quicr

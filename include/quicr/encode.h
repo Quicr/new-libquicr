@@ -20,16 +20,18 @@ namespace quicr::messages {
 
 enum class MessageType : uint8_t
 {
-  Unknown = 0,
-  Subscribe = 1,
-  Publish = 2,
-  SubscribeResponse = 3,
-  Unsubscribe = 4,
-  SubscribeEnd = 5,
+  Unknown,
+  Subscribe,
+  SubscribeResponse,
+  SubscribeEnd,
+  Unsubscribe,
+  Publish,
+  PublishIntent,
+  PublishResponse,
 };
 
 uint64_t
-transaction_id();
+create_transaction_id();
 
 ///
 /// Message Types
@@ -44,10 +46,10 @@ enum class MediaType : uint8_t
 
 enum class Response : uint8_t
 {
-  Ok = 0,
-  Expired = 1,
-  Fail = 2,
-  Redirect = 3
+  Ok,
+  Expired,
+  Fail,
+  Redirect
 };
 
 /*===========================================================================*/
@@ -120,7 +122,6 @@ struct PublishIntent
   //  *     origin_url(…)…,
   uint64_t transaction_id;
   quicr::Namespace quicr_namespace;
-  uint8_t mask;
   //  *     relay_auth_token_length(i),
   //  *     relay_token(…),
   std::vector<uint8_t> payload;

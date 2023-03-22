@@ -36,7 +36,8 @@ class HexEndec
   template<typename... UInt_ts>
   struct is_valid_uint
     : std::bool_constant<(std::is_unsigned_v<UInt_ts> && ...)>
-  {};
+  {
+  };
 
 public:
   HexEndec()
@@ -119,20 +120,18 @@ public:
 
   template<bool B = Size <= sizeof(uint64_t) * 8>
   static inline typename std::enable_if<B, std::string>::type Encode(
-    std::vector<uint8_t> distribution,
-    std::vector<uint64_t> values)
+    const std::vector<uint8_t>& distribution,
+    const std::vector<uint64_t>& values)
   {
-    return Encode(std::span<uint8_t>(distribution),
-                  std::span<uint64_t>(values));
+    return Encode(distribution, values);
   }
 
-  template<size_t D_N, size_t V_N, bool B = Size <= sizeof(uint64_t) * 8>
+  template<size_t N, bool B = Size <= sizeof(uint64_t) * 8>
   static inline typename std::enable_if<B, std::string>::type Encode(
-    std::array<uint8_t, D_N> distribution,
-    std::array<uint64_t, V_N> values)
+    const std::array<uint8_t, N>& distribution,
+    const std::array<uint64_t, N>& values)
   {
-    return Encode(std::span<uint8_t>(distribution),
-                  std::span<uint64_t>(values));
+    return Encode(distribution, values);
   }
 
   template<bool B = Size <= sizeof(uint64_t) * 8>
@@ -175,20 +174,18 @@ public:
 
   template<bool B = Size <= sizeof(uint64_t) * 8>
   static inline typename std::enable_if<!B, std::string>::type Encode(
-    std::vector<uint8_t> distribution,
-    std::vector<uint64_t> values)
+    const std::vector<uint8_t>& distribution,
+    const std::vector<uint64_t>& values)
   {
-    return Encode(std::span<uint8_t>(distribution),
-                  std::span<uint64_t>(values));
+    return Encode(distribution, values);
   }
 
-  template<size_t D_N, size_t V_N, bool B = Size <= sizeof(uint64_t) * 8>
+  template<size_t N, bool B = Size <= sizeof(uint64_t) * 8>
   static inline typename std::enable_if<!B, std::string>::type Encode(
-    std::array<uint8_t, D_N> distribution,
-    std::array<uint64_t, V_N> values)
+    const std::array<uint8_t, N>& distribution,
+    const std::array<uint64_t, N>& values)
   {
-    return Encode(std::span<uint8_t>(distribution),
-                  std::span<uint64_t>(values));
+    return Encode(distribution, values);
   }
 
   /**
