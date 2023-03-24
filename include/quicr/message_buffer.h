@@ -11,7 +11,7 @@ namespace quicr {
 class uintVar_t
 {
 public:
-  constexpr uintVar_t() = default;
+  uintVar_t() = default;
   constexpr uintVar_t(const uintVar_t&) = default;
   constexpr uintVar_t(uintVar_t&&) = default;
   constexpr uintVar_t(uint64_t v)

@@ -10,14 +10,14 @@ class MessageBuffer;
 class Namespace
 {
 public:
-  constexpr Namespace() = default;
+  Namespace() = default;
   constexpr Namespace(const Namespace& ns) = default;
   Namespace(Namespace&& ns) = default;
   Namespace(const Name& name, uint8_t sig_bits);
   Namespace(Name&& name, uint8_t sig_bits);
 
-  constexpr Namespace& operator=(const Namespace& other) = default;
-  constexpr Namespace& operator=(Namespace&& other) = default;
+  Namespace& operator=(const Namespace& other) = default;
+  Namespace& operator=(Namespace&& other) = default;
 
   bool contains(const Name& name) const;
   bool contains(const Namespace& name_space) const;
@@ -35,5 +35,18 @@ public:
 private:
   Name _mask_name;
   uint8_t _sig_bits;
+};
+
+struct NamespaceContains
+{
+  bool operator()(const quicr::Namespace& ns, const quicr::Namespace& sub_ns)
+  {
+    return ns.contains(sub_ns);
+  }
+
+  bool operator()(const quicr::Namespace& ns, const quicr::Name& name)
+  {
+    return ns.contains(name);
+  }
 };
 }

@@ -107,7 +107,7 @@ TEST_CASE("PublishIntent Message encode/decode")
 
 TEST_CASE("PublishIntentResponse Message encode/decode")
 {
-  PublishIntentResponse pir{ MessageType::Publish, Response::Ok, 0x1000 };
+  PublishIntentResponse pir{ MessageType::Publish, {}, Response::Ok, 0x1000 };
   MessageBuffer buffer;
   buffer << pir;
   PublishIntentResponse pir_out;

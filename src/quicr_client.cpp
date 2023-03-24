@@ -170,7 +170,7 @@ QuicRClient::publishIntent(std::shared_ptr<PublisherDelegate> pub_delegate,
     pub_delegates[quicr_namespace] = pub_delegate;
   }
 
-  messages::PublishIntent intent{ messages::MessageType::Publish,
+  messages::PublishIntent intent{ messages::MessageType::PublishIntent,
                                   messages::create_transaction_id(),
                                   quicr_namespace,
                                   std::move(payload),
@@ -523,6 +523,25 @@ QuicRClient::handle(messages::MessageBuffer&& msg)
         }
       } else { // is a fragment
         handle_pub_fragment(std::move(datagram));
+      }
+
+      break;
+    }
+
+    case messages::MessageType::PublishIntentResponse: {
+      messages::PublishIntentResponse response;
+      msg >> response;
+
+      if (!pub_delegates.count(response.quicr_namespace)) {
+        std::cout
+          << "Got PublishIntentResponse: No delegate found for namespace "
+          << response.quicr_namespace << std::endl;
+        return;
+      }
+
+      if (auto delegate = pub_delegates[response.quicr_namespace].lock()) {
+        PublishIntentResult result{ .status = response.response };
+        delegate->onPublishIntentResponse(response.quicr_namespace, result);
       }
 
       break;

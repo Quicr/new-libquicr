@@ -120,18 +120,20 @@ public:
 
   template<bool B = Size <= sizeof(uint64_t) * 8>
   static inline typename std::enable_if<B, std::string>::type Encode(
-    const std::vector<uint8_t>& distribution,
-    const std::vector<uint64_t>& values)
+    std::vector<uint8_t> distribution,
+    std::vector<uint64_t> values)
   {
-    return Encode(distribution, values);
+    return Encode(std::span<uint8_t>(distribution),
+                  std::span<uint64_t>(values));
   }
 
   template<size_t N, bool B = Size <= sizeof(uint64_t) * 8>
   static inline typename std::enable_if<B, std::string>::type Encode(
-    const std::array<uint8_t, N>& distribution,
-    const std::array<uint64_t, N>& values)
+    std::array<uint8_t, N> distribution,
+    std::array<uint64_t, N> values)
   {
-    return Encode(distribution, values);
+    return Encode(std::span<uint8_t>(distribution),
+                  std::span<uint64_t>(values));
   }
 
   template<bool B = Size <= sizeof(uint64_t) * 8>
@@ -174,18 +176,20 @@ public:
 
   template<bool B = Size <= sizeof(uint64_t) * 8>
   static inline typename std::enable_if<!B, std::string>::type Encode(
-    const std::vector<uint8_t>& distribution,
-    const std::vector<uint64_t>& values)
+    std::vector<uint8_t> distribution,
+    std::vector<uint64_t> values)
   {
-    return Encode(distribution, values);
+    return Encode(std::span<uint8_t>(distribution),
+                  std::span<uint64_t>(values));
   }
 
   template<size_t N, bool B = Size <= sizeof(uint64_t) * 8>
   static inline typename std::enable_if<!B, std::string>::type Encode(
-    const std::array<uint8_t, N>& distribution,
-    const std::array<uint64_t, N>& values)
+    std::array<uint8_t, N> distribution,
+    std::array<uint64_t, N> values)
   {
-    return Encode(distribution, values);
+    return Encode(std::span<uint8_t>(distribution),
+                  std::span<uint64_t>(values));
   }
 
   /**

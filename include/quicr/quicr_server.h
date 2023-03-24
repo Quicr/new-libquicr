@@ -258,6 +258,10 @@ private:
   void handle_publish_intent(const qtransport::TransportContextId& context_id,
                              const qtransport::MediaStreamId& mStreamId,
                              messages::MessageBuffer&& msg);
+  void handle_publish_intent_response(
+    const qtransport::TransportContextId& context_id,
+    const qtransport::MediaStreamId& mStreamId,
+    messages::MessageBuffer&& msg);
 
   struct SubscribeContext
   {
@@ -288,6 +292,7 @@ private:
     State state{ State::Unknown };
     qtransport::TransportContextId transport_context_id{ 0 };
     qtransport::MediaStreamId media_stream_id{ 0 };
+    uint64_t transaction_id{ 0 };
     uint64_t group_id{ 0 };
     uint64_t object_id{ 0 };
     uint64_t offset{ 0 };
@@ -302,7 +307,7 @@ private:
            std::map<qtransport::TransportContextId, SubscribeContext>>
     subscribe_state{};
   std::map<uint64_t, SubscribeContext> subscribe_id_state{};
-  std::map<quicr::Namespace, PublishContext> publish_state{};
+  std::map<quicr::Name, PublishContext> publish_state{};
   bool running{ false };
   uint64_t subscriber_id{ 0 };
 };

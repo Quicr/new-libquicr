@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <array>
 #include <bit>
-#include <cassert>
 #include <iomanip>
 #include <sstream>
 #include <vector>
@@ -27,7 +26,10 @@ MessageBuffer::MessageBuffer(std::vector<uint8_t>&& buffer)
 void
 MessageBuffer::pop()
 {
-  assert(!_buffer.empty());
+  if (empty()) {
+    throw MessageBuffer::ReadException("Cannot pop from empty message buffer");
+  }
+
   _buffer.erase(_buffer.begin());
 }
 
@@ -98,8 +100,10 @@ swap_bytes(uint16_t value)
 constexpr uint32_t
 swap_bytes(uint32_t value)
 {
-  return ((value >> 24) & 0x000000ff) | ((value >>  8) & 0x0000ff00) |
-         ((value <<  8) & 0x00ff0000) | ((value << 24) & 0xff000000);
+  return ((value >> 24) & 0x000000ff) |
+         ((value >>  8) & 0x0000ff00) |
+         ((value <<  8) & 0x00ff0000) |
+         ((value << 24) & 0xff000000);
 }
 
 constexpr uint64_t

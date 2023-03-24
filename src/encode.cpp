@@ -185,6 +185,7 @@ MessageBuffer&
 operator<<(MessageBuffer& buffer, const PublishIntentResponse& msg)
 {
   buffer << static_cast<uint8_t>(msg.message_type);
+  buffer << msg.quicr_namespace;
   buffer << static_cast<uint8_t>(msg.response);
   buffer << msg.transaction_id;
 
@@ -197,6 +198,8 @@ operator>>(MessageBuffer& buffer, PublishIntentResponse& msg)
   uint8_t msg_type;
   buffer >> msg_type;
   msg.message_type = static_cast<MessageType>(msg_type);
+
+  buffer >> msg.quicr_namespace;
 
   uint8_t response;
   buffer >> response;

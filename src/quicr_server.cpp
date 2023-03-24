@@ -102,27 +102,15 @@ void
 QuicRServer::publishIntentResponse(const quicr::Namespace& quicr_namespace,
                                    const PublishIntentResult& result)
 {
-  messages::Response status;
-  switch (result.status) {
-    case PublishStatus::Ok:
-      status = messages::Response::Ok;
-      break;
-    case PublishStatus::Redirect:
-    case PublishStatus::ReAssigned:
-      status = messages::Response::Redirect;
-      break;
-    case PublishStatus::FailedError:
-    case PublishStatus::FailedAuthz:
-      status = messages::Response::Fail;
-      break;
-    case PublishStatus::TimeOut:
-      status = messages::Response::Expired;
-      break;
-  }
+  if (!publish_state.count(quicr_namespace.name()))
+    return;
 
-  const auto& context = publish_state[quicr_namespace];
+  const auto& context = publish_state[quicr_namespace.name()];
   messages::PublishIntentResponse response{
-    messages::MessageType::PublishResponse, status, context.transport_context_id
+    messages::MessageType::PublishIntentResponse,
+    quicr_namespace,
+    result.status,
+    context.transaction_id
   };
 
   messages::MessageBuffer msg(sizeof(response));
@@ -268,36 +256,42 @@ QuicRServer::handle_publish(const qtransport::TransportContextId& context_id,
   messages::PublishDatagram datagram;
   msg >> datagram;
 
-  bool is_valid_name = false;
-  for (const auto& [ns, _] : publish_state) {
-    if (ns.contains(datagram.header.name)) {
-      is_valid_name = true;
-      break;
-    }
+  PublishContext context;
+  if (!publish_state.count(datagram.header.name)) {
+    context.transport_context_id = context_id;
+    context.media_stream_id = mStreamId;
+
+    publish_state[datagram.header.name] = context;
+  } else {
+    context = publish_state[datagram.header.name];
   }
 
-  if (!is_valid_name)
-    return;
-
-  // TODO: Add publish_state when we support PublishIntent
-  delegate.onPublisherObject(context_id, mStreamId, false, std::move(datagram));
+  delegate.onPublisherObject(context.transport_context_id,
+                             context.media_stream_id,
+                             false,
+                             std::move(datagram));
 }
 
 void
 QuicRServer::handle_publish_intent(
-  [[maybe_unused]] const qtransport::TransportContextId& context_id,
-  [[maybe_unused]] const qtransport::MediaStreamId& mStreamId,
+  const qtransport::TransportContextId& context_id,
+  const qtransport::MediaStreamId& mStreamId,
   messages::MessageBuffer&& msg)
 {
   messages::PublishIntent intent;
   msg >> intent;
 
-  if (!publish_state.count(intent.quicr_namespace)) {
-    PublishContext context;
+  const auto& name = intent.quicr_namespace.name();
+
+  PublishContext context;
+  if (!publish_state.count(name)) {
     context.transport_context_id = context_id;
     context.media_stream_id = mStreamId;
+    context.transaction_id = intent.transaction_id;
 
-    publish_state[intent.quicr_namespace] = context;
+    publish_state[name] = context;
+  } else {
+    context = publish_state[name];
   }
 
   delegate.onPublishIntent(intent.quicr_namespace,

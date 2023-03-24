@@ -18,39 +18,8 @@ namespace quicr::messages {
 // Common
 /*===========================================================================*/
 
-enum class MessageType : uint8_t
-{
-  Unknown,
-  Subscribe,
-  SubscribeResponse,
-  SubscribeEnd,
-  Unsubscribe,
-  Publish,
-  PublishIntent,
-  PublishResponse,
-};
-
 uint64_t
 create_transaction_id();
-
-///
-/// Message Types
-///
-enum class MediaType : uint8_t
-{
-  Manifest,
-  Advertisement,
-  Text,
-  RealtimeMedia
-};
-
-enum class Response : uint8_t
-{
-  Ok,
-  Expired,
-  Fail,
-  Redirect
-};
 
 /*===========================================================================*/
 // Subscribe Message Types
@@ -139,6 +108,7 @@ operator>>(MessageBuffer& buffer, PublishIntent& msg);
 struct PublishIntentResponse
 {
   MessageType message_type;
+  quicr::Namespace quicr_namespace;
   Response response;
   uint64_t transaction_id;
   // *  signature(32)

@@ -144,7 +144,7 @@ public:
                                quicr::bytes&& /* e2e_token */)
   {
     // TODO: Authenticate token
-    quicr::PublishIntentResult result{ quicr::PublishStatus::Ok, {}, {} };
+    quicr::PublishIntentResult result{ quicr::messages::Response::Ok, {}, {} };
     server->publishIntentResponse(quicr_namespace, result);
   };
 
