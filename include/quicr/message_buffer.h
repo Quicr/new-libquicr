@@ -94,6 +94,7 @@ public:
   void push(std::vector<uint8_t>&& data);
   void pop(uint16_t len);
   std::vector<uint8_t> front(uint16_t len);
+  std::vector<uint8_t> pop_front(uint16_t len);
 
   std::vector<uint8_t> get();
 

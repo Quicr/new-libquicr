@@ -36,17 +36,4 @@ private:
   Name _mask_name;
   uint8_t _sig_bits;
 };
-
-struct NamespaceContains
-{
-  bool operator()(const quicr::Namespace& ns, const quicr::Namespace& sub_ns)
-  {
-    return ns.contains(sub_ns);
-  }
-
-  bool operator()(const quicr::Namespace& ns, const quicr::Name& name)
-  {
-    return ns.contains(name);
-  }
-};
 }
