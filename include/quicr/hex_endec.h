@@ -276,9 +276,10 @@ public:
 
     constexpr uint8_t hex_length = Size / 4;
     if (hex.length() - start_pos != hex_length)
-      throw std::runtime_error("Hex string value must be " +
-                               std::to_string(hex_length) + " characters (" +
-                               std::to_string(Size / 8) + " bytes)");
+      throw std::runtime_error(
+        "Hex string value must be " + std::to_string(hex_length) +
+        " characters (" + std::to_string(Size / 8) +
+        " bytes). Got: " + std::to_string(hex.length() - start_pos));
 
     std::bitset<Size> bits;
     const uint8_t section_length = sizeof(uint64_t) * 2;

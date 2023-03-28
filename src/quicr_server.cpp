@@ -247,7 +247,59 @@ QuicRServer::handle_publish(
   delegate.onPublisherObject(context_id, mStreamId, false, std::move(datagram));
 }
 
+<<<<<<< Updated upstream
 // --------------------------------------------------
+=======
+void
+QuicRServer::handle_publish_intent(
+  const qtransport::TransportContextId& context_id,
+  const qtransport::MediaStreamId& mStreamId,
+  messages::MessageBuffer&& msg)
+{
+  messages::PublishIntent intent;
+  msg >> intent;
+
+  const auto& name = intent.quicr_namespace.name();
+
+  if (!publish_state.count(name)) {
+    PublishContext context;
+    context.transport_context_id = context_id;
+    context.media_stream_id = mStreamId;
+    context.transaction_id = intent.transaction_id;
+
+    publish_state[name] = context;
+  }
+
+  delegate.onPublishIntent(intent.quicr_namespace,
+                           "" /* intent.origin_url */,
+                           false,
+                           "" /* intent.relay_token */,
+                           std::move(intent.payload));
+}
+
+void
+QuicRServer::handle_publish_intent_end(
+  const qtransport::TransportContextId& context_id,
+  const qtransport::MediaStreamId& mStreamId,
+  messages::MessageBuffer&& msg)
+{
+  messages::PublishIntentEnd intent_end;
+  msg >> intent_end;
+
+  const auto& name = intent_end.name;
+
+  if (!publish_state.count(name)) {
+    return;
+  }
+
+  publish_state.erase(name);
+  delegate.onPublishIntentEnd(intent_end.name,
+                              "" /* intent_end.relay_token */,
+                              std::move(intent_end.payload));
+}
+
+/*===========================================================================*/
+>>>>>>> Stashed changes
 // Transport Delegate Implementation
 // ---------------
 QuicRServer::TransportDelegate::TransportDelegate(quicr::QuicRServer& server)
@@ -317,6 +369,19 @@ QuicRServer::TransportDelegate::on_recv_notify(
             server.handle_unsubscribe(
               context_id, mStreamId, std::move(msg_buffer));
             break;
+<<<<<<< Updated upstream
+=======
+          case messages::MessageType::PublishIntent: {
+            server.handle_publish_intent(
+              context_id, mStreamId, std::move(msg_buffer));
+            break;
+          }
+          case messages::MessageType::PublishIntentEnd: {
+            server.handle_publish_intent_end(
+              context_id, mStreamId, std::move(msg_buffer));
+            break;
+          }
+>>>>>>> Stashed changes
           default:
             break;
         }
@@ -330,7 +395,6 @@ QuicRServer::TransportDelegate::on_recv_notify(
           "Received unknown error while reading from message buffer.");
         throw;
       }
-
     } else {
       break;
     }

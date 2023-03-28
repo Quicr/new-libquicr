@@ -51,6 +51,11 @@ public:
                                const std::string& auth_token,
                                bytes&& e2e_token) = 0;
 
+  // TODO:Document this
+  virtual void onPublishIntentEnd(const quicr::Name& quicr_name,
+                                  const std::string& auth_token,
+                                  bytes&& e2e_token) = 0;
+
   /**
    * @brief Reports arrival of fully assembled QUICR object under the name
    *
@@ -255,6 +260,16 @@ private:
   void handle_publish(const qtransport::TransportContextId& context_id,
                       const qtransport::MediaStreamId& mStreamId,
                       messages::MessageBuffer&& msg);
+<<<<<<< Updated upstream
+=======
+  void handle_publish_intent(const qtransport::TransportContextId& context_id,
+                             const qtransport::MediaStreamId& mStreamId,
+                             messages::MessageBuffer&& msg);
+  void handle_publish_intent_end(
+    const qtransport::TransportContextId& context_id,
+    const qtransport::MediaStreamId& mStreamId,
+    messages::MessageBuffer&& msg);
+>>>>>>> Stashed changes
 
   struct SubscribeContext
   {

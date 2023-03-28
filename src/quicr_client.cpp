@@ -171,10 +171,26 @@ QuicRClient::publishIntent(
 }
 
 void
-QuicRClient::publishIntentEnd(const quicr::Namespace& /* quicr_namespace */,
-                              const std::string& /* auth_token */)
+QuicRClient::publishIntentEnd(const quicr::Namespace& quicr_namespace,
+                              [[maybe_unused]] const std::string& auth_token)
 {
-  throw std::runtime_error("UnImplemented");
+  if (!pub_delegates.count(quicr_namespace)) {
+    return;
+  }
+  pub_delegates.erase(quicr_namespace);
+
+  // TODO: Authenticate token.
+
+  messages::PublishIntentEnd intent_end{
+    messages::MessageType::PublishIntentEnd,
+    quicr_namespace.name(),
+    {} // TODO: Figure out payload.
+  };
+
+  messages::MessageBuffer msg;
+  msg << intent_end;
+
+  transport->enqueue(transport_context_id, media_stream_id, msg.get());
 }
 
 void

@@ -27,6 +27,46 @@ using bytes = std::vector<uint8_t>;
  */
 using QUICRContext = uint64_t;
 
+<<<<<<< Updated upstream
+=======
+namespace messages {
+/**
+ * Type of message being sent/received
+ */
+enum class MessageType : uint8_t
+{
+  Unknown,
+  Subscribe,
+  SubscribeResponse,
+  SubscribeEnd,
+  Unsubscribe,
+  Publish,
+  PublishIntent,
+  PublishIntentResponse,
+  PublishIntentEnd,
+};
+
+/**
+ * Indicates the type of media being sent.
+ */
+enum class MediaType : uint8_t
+{
+  Manifest,
+  Advertisement,
+  Text,
+  RealtimeMedia
+};
+
+enum class Response : uint8_t
+{
+  Ok,
+  Expired,
+  Fail,
+  Redirect
+};
+}
+
+>>>>>>> Stashed changes
 /**
  * Hint providing the start point to serve a subscrption request.
  * Relays use this information to determine the start-point and
