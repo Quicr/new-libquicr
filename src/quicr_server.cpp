@@ -283,15 +283,13 @@ QuicRServer::handle_publish_intent(
 
   const auto& name = intent.quicr_namespace.name();
 
-  PublishContext context;
   if (!publish_state.count(name)) {
+    PublishContext context;
     context.transport_context_id = context_id;
     context.media_stream_id = mStreamId;
     context.transaction_id = intent.transaction_id;
 
     publish_state[name] = context;
-  } else {
-    context = publish_state[name];
   }
 
   delegate.onPublishIntent(intent.quicr_namespace,
