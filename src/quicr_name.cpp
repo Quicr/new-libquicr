@@ -32,14 +32,22 @@ Name::Name(const std::string& hex_value)
   }
 }
 
-Name::Name(uint8_t* data, size_t length)
-  : Name(std::vector<uint8_t>{ data, data + length })
+Name::Name(uint8_t* data, [[maybe_unused]] size_t length)
 {
+  assert(length == size());
+
+  constexpr size_t size_of = size() / 2;
+  std::memcpy(&_low, data, size_of);
+  std::memcpy(&_hi, data + size_of, size_of);
 }
 
-Name::Name(const uint8_t* data, size_t length)
-  : Name(std::vector<uint8_t>{ data, data + length })
+Name::Name(const uint8_t* data, [[maybe_unused]] size_t length)
 {
+  assert(length == size());
+
+  constexpr size_t size_of = size() / 2;
+  std::memcpy(&_low, data, size_of);
+  std::memcpy(&_hi, data + size_of, size_of);
 }
 
 Name::Name(const std::vector<uint8_t>& data)
@@ -52,14 +60,13 @@ Name::Name(const std::vector<uint8_t>& data)
 std::string
 Name::to_hex() const
 {
-  constexpr uint8_t size_of = size();
+  constexpr int size_of = size();
 
-  std::ostringstream stream;
-  stream << "0x" << std::hex << std::setfill('0');
-  stream << std::setw(size_of) << _hi;
-  stream << std::setw(size_of) << _low;
+  char hex[size_of * 2 + 1];
+  std::snprintf(hex, size_of + 1, "%0*llX", size_of, _hi);
+  std::snprintf(hex + size_of, size_of + 1, "%0*llX", size_of, _low);
 
-  return stream.str();
+  return std::string("0x") + hex;
 }
 
 std::uint8_t
