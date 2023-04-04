@@ -102,10 +102,10 @@ void
 QuicRServer::publishIntentResponse(const quicr::Namespace& quicr_namespace,
                                    const PublishIntentResult& result)
 {
-  if (!publish_state.count(quicr_namespace.name()))
+  if (!publish_namespaces.count(quicr_namespace))
     return;
 
-  const auto& context = publish_state[quicr_namespace.name()];
+  auto& context = publish_namespaces[quicr_namespace];
   messages::PublishIntentResponse response{
     messages::MessageType::PublishIntentResponse,
     quicr_namespace,
@@ -115,6 +115,8 @@ QuicRServer::publishIntentResponse(const quicr::Namespace& quicr_namespace,
 
   messages::MessageBuffer msg(sizeof(response));
   msg << response;
+
+  context.state = PublishIntentContext::State::Ready;
 
   transport->enqueue(
     context.transport_context_id, context.media_stream_id, msg.get());
@@ -256,6 +258,18 @@ QuicRServer::handle_publish(const qtransport::TransportContextId& context_id,
   messages::PublishDatagram datagram;
   msg >> datagram;
 
+  auto publish_namespace =
+    std::find_if(publish_namespaces.begin(),
+                 publish_namespaces.end(),
+                 [&datagram](const auto& ns) {
+                   return ns.first.contains(datagram.header.name);
+                 });
+
+  if (publish_namespace == publish_namespaces.end()) {
+    // No such namespace, don't publish yet.
+    return;
+  }
+
   PublishContext context;
   if (!publish_state.count(datagram.header.name)) {
     context.transport_context_id = context_id;
@@ -281,15 +295,26 @@ QuicRServer::handle_publish_intent(
   messages::PublishIntent intent;
   msg >> intent;
 
-  const auto& name = intent.quicr_namespace.name();
-
-  if (!publish_state.count(name)) {
-    PublishContext context;
+  if (!publish_namespaces.count(intent.quicr_namespace)) {
+    PublishIntentContext context;
+    context.state = PublishIntentContext::State::Pending;
     context.transport_context_id = context_id;
     context.media_stream_id = mStreamId;
     context.transaction_id = intent.transaction_id;
 
-    publish_state[name] = context;
+    publish_namespaces[intent.quicr_namespace] = context;
+  } else {
+    auto state = publish_namespaces[intent.quicr_namespace].state;
+    switch (state) {
+      case PublishIntentContext::State::Pending:
+        // TODO: Resend response?
+        break;
+      case PublishIntentContext::State::Ready:
+        // TODO: Already registered this namespace successfully, do nothing?
+        break;
+      default:
+        break;
+    }
   }
 
   delegate.onPublishIntent(intent.quicr_namespace,

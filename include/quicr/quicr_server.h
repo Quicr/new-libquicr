@@ -263,7 +263,7 @@ private:
     const qtransport::MediaStreamId& mStreamId,
     messages::MessageBuffer&& msg);
 
-  struct SubscribeContext
+  struct Context
   {
     enum struct State
     {
@@ -275,27 +275,24 @@ private:
     State state{ State::Unknown };
     qtransport::TransportContextId transport_context_id{ 0 };
     qtransport::MediaStreamId media_stream_id{ 0 };
+  };
+
+  struct SubscribeContext : public Context
+  {
     uint64_t transaction_id{ 0 };
     uint64_t subscriber_id{ 0 };
   };
 
-  // State per publish_intent and related publish
-  struct PublishContext
+  struct PublishContext : public Context
   {
-    enum struct State
-    {
-      Unknown = 0,
-      Pending,
-      Ready
-    };
-
-    State state{ State::Unknown };
-    qtransport::TransportContextId transport_context_id{ 0 };
-    qtransport::MediaStreamId media_stream_id{ 0 };
-    uint64_t transaction_id{ 0 };
     uint64_t group_id{ 0 };
     uint64_t object_id{ 0 };
     uint64_t offset{ 0 };
+  };
+
+  struct PublishIntentContext : public Context
+  {
+    uint64_t transaction_id{ 0 };
   };
 
   ServerDelegate& delegate;
@@ -308,6 +305,7 @@ private:
     subscribe_state{};
   std::map<uint64_t, SubscribeContext> subscribe_id_state{};
   std::map<quicr::Name, PublishContext> publish_state{};
+  std::map<quicr::Namespace, PublishIntentContext> publish_namespaces{};
   bool running{ false };
   uint64_t subscriber_id{ 0 };
 };
