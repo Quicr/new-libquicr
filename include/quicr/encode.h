@@ -167,7 +167,7 @@ operator>>(MessageBuffer& buffer, PublishStream& msg);
 struct PublishIntentEnd
 {
   MessageType message_type;
-  quicr::Name name;
+  quicr::Namespace quicr_namespace;
   //  * relay_auth_token_length(i),
   //  * relay_token(…),
   std::vector<uint8_t> payload;

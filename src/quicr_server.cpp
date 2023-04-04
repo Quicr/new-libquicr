@@ -324,6 +324,27 @@ QuicRServer::handle_publish_intent(
                            std::move(intent.payload));
 }
 
+void
+QuicRServer::handle_publish_intent_end(
+  const qtransport::TransportContextId& context_id,
+  const qtransport::MediaStreamId& mStreamId,
+  messages::MessageBuffer&& msg)
+{
+  messages::PublishIntentEnd intent_end;
+  msg >> intent_end;
+
+  const auto& name = intent_end.quicr_namespace;
+
+  if (!publish_namespaces.count(intent_end.quicr_namespace)) {
+    return;
+  }
+
+  publish_namespaces.erase(name);
+  delegate.onPublishIntentEnd(intent_end.quicr_namespace,
+                              "" /* intent_end.relay_token */,
+                              std::move(intent_end.payload));
+}
+
 /*===========================================================================*/
 // Transport Delegate Implementation
 /*===========================================================================*/
@@ -400,6 +421,11 @@ QuicRServer::TransportDelegate::on_recv_notify(
               context_id, mStreamId, std::move(msg_buffer));
             break;
           }
+          case messages::MessageType::PublishIntentEnd: {
+            server.handle_publish_intent_end(
+              context_id, mStreamId, std::move(msg_buffer));
+            break;
+          }
           default:
             break;
         }
@@ -413,7 +439,6 @@ QuicRServer::TransportDelegate::on_recv_notify(
           "Received unknown error while reading from message buffer.");
         throw;
       }
-
     } else {
       break;
     }

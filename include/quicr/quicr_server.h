@@ -51,6 +51,11 @@ public:
                                const std::string& auth_token,
                                bytes&& e2e_token) = 0;
 
+  // TODO:Document this
+  virtual void onPublishIntentEnd(const quicr::Namespace& quicr_namespace,
+                                  const std::string& auth_token,
+                                  bytes&& e2e_token) = 0;
+
   /**
    * @brief Reports arrival of fully assembled QUICR object under the name
    *
@@ -259,6 +264,10 @@ private:
                              const qtransport::MediaStreamId& mStreamId,
                              messages::MessageBuffer&& msg);
   void handle_publish_intent_response(
+    const qtransport::TransportContextId& context_id,
+    const qtransport::MediaStreamId& mStreamId,
+    messages::MessageBuffer&& msg);
+  void handle_publish_intent_end(
     const qtransport::TransportContextId& context_id,
     const qtransport::MediaStreamId& mStreamId,
     messages::MessageBuffer&& msg);

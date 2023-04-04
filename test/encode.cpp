@@ -162,7 +162,9 @@ TEST_CASE("PublishStream Message encode/decode")
 
 TEST_CASE("PublishIntentEnd Message encode/decode")
 {
-  PublishIntentEnd pie{ MessageType::Publish, { "12345" }, { 0, 1, 2, 3, 4 } };
+  PublishIntentEnd pie{ MessageType::Publish,
+                        { { "12345" }, 0u },
+                        { 0, 1, 2, 3, 4 } };
   MessageBuffer buffer;
   auto pie_copy = pie;
   buffer << std::move(pie_copy);
@@ -170,7 +172,7 @@ TEST_CASE("PublishIntentEnd Message encode/decode")
   CHECK_NOTHROW((buffer >> pie_out));
 
   CHECK_EQ(pie_out.message_type, pie.message_type);
-  CHECK_EQ(pie_out.name, pie.name);
+  CHECK_EQ(pie_out.quicr_namespace, pie.quicr_namespace);
   CHECK_EQ(pie_out.payload, pie.payload);
 }
 

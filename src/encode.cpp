@@ -320,7 +320,7 @@ MessageBuffer&
 operator<<(MessageBuffer& buffer, const PublishIntentEnd& msg)
 {
   buffer << static_cast<uint8_t>(msg.message_type);
-  buffer << msg.name;
+  buffer << msg.quicr_namespace;
   buffer << msg.payload;
 
   return buffer;
@@ -330,7 +330,7 @@ MessageBuffer&
 operator<<(MessageBuffer& buffer, PublishIntentEnd&& msg)
 {
   buffer << static_cast<uint8_t>(msg.message_type);
-  buffer << msg.name;
+  buffer << msg.quicr_namespace;
   buffer << std::move(msg.payload);
 
   return buffer;
@@ -343,7 +343,7 @@ operator>>(MessageBuffer& buffer, PublishIntentEnd& msg)
   buffer >> msg_type;
   msg.message_type = static_cast<MessageType>(msg_type);
 
-  buffer >> msg.name;
+  buffer >> msg.quicr_namespace;
   buffer >> msg.payload;
 
   return buffer;

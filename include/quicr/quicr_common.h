@@ -41,6 +41,7 @@ enum class MessageType : uint8_t
   Publish,
   PublishIntent,
   PublishIntentResponse,
+  PublishIntentEnd,
 };
 
 /**

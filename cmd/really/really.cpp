@@ -148,6 +148,12 @@ public:
     server->publishIntentResponse(quicr_namespace, result);
   };
 
+  virtual void onPublishIntentEnd(const quicr::Namespace& quicr_namespace,
+                                  const std::string& /* auth_token */,
+                                  quicr::bytes&& /* e2e_token */)
+  {
+  }
+
   virtual void onPublisherObject(
     const qtransport::TransportContextId& context_id,
     const qtransport::MediaStreamId& stream_id,
