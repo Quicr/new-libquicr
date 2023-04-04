@@ -326,8 +326,8 @@ QuicRServer::handle_publish_intent(
 
 void
 QuicRServer::handle_publish_intent_end(
-  const qtransport::TransportContextId& context_id,
-  const qtransport::MediaStreamId& mStreamId,
+  [[maybe_unused]] const qtransport::TransportContextId& context_id,
+  [[maybe_unused]] const qtransport::MediaStreamId& mStreamId,
   messages::MessageBuffer&& msg)
 {
   messages::PublishIntentEnd intent_end;
@@ -340,6 +340,15 @@ QuicRServer::handle_publish_intent_end(
   }
 
   publish_namespaces.erase(name);
+
+  for (auto it = publish_state.begin(); it != publish_state.end();) {
+    const auto& [name, _] = *it;
+    if (intent_end.quicr_namespace.contains(name))
+      it = publish_state.erase(it);
+    else
+      ++it;
+  }
+
   delegate.onPublishIntentEnd(intent_end.quicr_namespace,
                               "" /* intent_end.relay_token */,
                               std::move(intent_end.payload));
